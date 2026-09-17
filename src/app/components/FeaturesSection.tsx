@@ -1,3 +1,4 @@
+import glassCaseImage from "../../assets/glasscase.png";
 export function FeaturesSection() {
   return (
     <section id="problem" className="bg-white">
@@ -124,7 +125,7 @@ export function FeaturesSection() {
             style={{ minHeight: "700px" }}
           >
             <img
-              src="https://i.imgur.com/n2KGRho.png"
+              src={glassCaseImage}
               alt="The Glass Case of Home Care"
               className="absolute inset-0 w-full h-full object-cover object-top"
             />

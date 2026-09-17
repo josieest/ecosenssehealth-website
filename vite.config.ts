@@ -16,7 +16,7 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
-  base: '/ecosenssehealth-website/',
+  base: './',
 
   plugins: [
     figmaAssetResolver(),

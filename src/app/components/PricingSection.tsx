@@ -160,12 +160,13 @@ export function PricingSection() {
 
               {/* CTA */}
               <div className="px-7 pb-7">
-                <button
-                  className="w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all duration-200 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+                <a
+                  href="#partner"
+                  className="block w-full py-3.5 rounded-xl font-bold text-sm tracking-wide text-center no-underline transition-all duration-200 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
                   style={{ background: "#0A2342", color: "#fff" }}
                 >
                   {plan.cta}
-                </button>
+                </a>
               </div>
             </div>
           ))}

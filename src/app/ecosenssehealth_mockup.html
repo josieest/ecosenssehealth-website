@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ecoSENSSEhealth — Live Screens</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Raleway:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070d14;--panel:#0c1824;--card:#101f2e;--card2:#0e1a27;
+  --border:rgba(0,200,180,0.13);--teal:#00c8b4;--teal2:#00e5cc;
+  --teal-dim:rgba(0,200,180,0.08);--red:#ff4d6d;--amber:#ffb347;
+  --green:#39e079;--sky:#38bdf8;--purple:#a78bfa;
+  --text:#d8eef8;--muted:#4a7a92;--mono:'Fira Code',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:'Raleway',sans-serif;min-height:100vh;overflow-x:hidden;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:12px 40px;border-bottom:1px solid rgba(255,255,255,.06);background:#0d1117;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.4);}
+.nav-tabs{display:flex;gap:6px;}
+.tab-btn{font-family:'Raleway',sans-serif;font-size:12.5px;font-weight:600;padding:7px 18px;border-radius:8px;border:1px solid transparent;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,.45);}
+.tab-btn.active{background:rgba(0,151,167,.15);border-color:rgba(0,151,167,.3);color:#00c8b4;}
+.tab-btn:hover:not(.active){color:rgba(255,255,255,.8);background:rgba(255,255,255,.06);}
+.nav-time{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.4);}
+.live-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--green);background:rgba(57,224,121,.08);border:1px solid rgba(57,224,121,.2);padding:4px 10px;border-radius:20px;}
+.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.2s infinite;}
+.screens{padding:40px;max-width:1400px;margin:0 auto;}
+.screen{display:none;}.screen.active{display:block;}
+
+/* VITALS */
+.vitals-layout{display:grid;grid-template-rows:auto 1fr auto;gap:20px;}
+.patient-bar{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px 28px;animation:slideDown .5s ease both;}
+.patient-info{display:flex;align-items:center;gap:16px;}
+.patient-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3a4a,#0d2535);border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.patient-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:2px;}
+.patient-meta{font-size:12.5px;color:var(--muted);display:flex;gap:14px;}
+.patient-status-group{display:flex;gap:10px;align-items:center;}
+.status-pill{font-family:var(--mono);font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;}
+.vitals-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;animation:fadeUp .6s .1s ease both;opacity:0;animation-fill-mode:both;}
+.vital-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 20px 18px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;}
+.vital-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3);}
+.vital-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 16px 16px;}
+.vital-card.heart::after{background:var(--red)}.vital-card.spo2::after{background:var(--sky)}.vital-card.bp::after{background:var(--amber)}.vital-card.temp::after{background:var(--purple)}
+.vital-label{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.vital-value{font-family:'Playfair Display',serif;font-size:42px;font-weight:800;line-height:1;margin-bottom:4px;}
+.vital-unit{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:12px;}
+.sparkline{width:100%;height:48px;display:block;}
+.vital-trend{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--muted);}
+.trend-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.ecg-row{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;animation:fadeUp .6s .2s ease both;opacity:0;animation-fill-mode:both;}
+.ecg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.ecg-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.ecg-canvas{width:100%;height:80px;display:block;}
+.ecg-meta{display:flex;gap:20px;margin-top:10px;}
+.ecg-stat{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.ecg-stat strong{color:var(--text);display:block;font-size:13px;}
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;animation:fadeUp .6s .3s ease both;opacity:0;animation-fill-mode:both;}
+.alert-panel,.activity-panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;}
+.panel-title{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.alert-item:last-child{border-bottom:none;}
+.alert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.alert-text{font-size:12.5px;color:var(--text);line-height:1.5;}
+.alert-time{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;}
+.activity-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12.5px;}
+.activity-row:last-child{border-bottom:none;}
+.activity-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.activity-label{flex:1;color:var(--text);}
+.activity-time{font-family:var(--mono);font-size:10px;color:var(--muted);}
+
+/* AGENCY */
+#screen-agency{background:#eef2f7;border-radius:16px;}
+.agency-layout{display:grid;grid-template-columns:3fr 2fr;gap:16px;height:calc(100vh - 160px);min-height:700px;}
+.map-panel{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;overflow:hidden;position:relative;animation:slideRight .5s ease both;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.map-header{padding:16px 20px;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;background:#f8fafc;flex-shrink:0;}
+.map-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:#1a2b3c;}
+.map-canvas{flex:1;position:relative;overflow:hidden;min-height:300px;}
+.map-canvas canvas{position:absolute;top:0;left:0;}
+.map-legend{padding:10px 16px;border-top:1px solid rgba(0,0,0,.08);display:flex;gap:16px;background:#f8fafc;flex-shrink:0;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10.5px;color:#6b8799;}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+.right-panel{display:flex;flex-direction:column;gap:10px;overflow-y:auto;animation:fadeUp .5s .1s ease both;opacity:0;animation-fill-mode:both;}
+.agency-header-bar{background:linear-gradient(135deg,#0097a7,#006978);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 32px rgba(0,0,0,.1);}
+.agency-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:800;color:#fff;}
+.agency-sub{font-size:10.5px;color:rgba(255,255,255,.65);margin-top:2px;}
+.agency-stats{display:flex;gap:14px;}
+.astat{text-align:center;}
+.astat-num{font-family:'Playfair Display',serif;font-size:18px;font-weight:800;color:#fff;}
+.astat-label{font-size:9px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;}
+.clients-section{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;flex:1;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.section-head{padding:9px 14px;border-bottom:1px solid rgba(0,0,0,.08);background:#f8fafc;display:flex;align-items:center;justify-content:space-between;}
+.section-head-title{font-family:'Playfair Display',serif;font-size:11px;font-weight:700;color:#1a2b3c;}
+.client-row{display:grid;grid-template-columns:26px 1fr 80px 65px 78px 55px;align-items:center;gap:7px;padding:7px 12px;border-bottom:1px solid rgba(0,0,0,.04);transition:background .15s;cursor:pointer;color:#1a2b3c;}
+.client-row:last-child{border-bottom:none;}
+.client-row:hover{background:#f0f7fa;}
+.client-row.header-row{font-family:var(--mono);font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:#6b8799;cursor:default;background:#f1f5f9;}
+.client-row.header-row:hover{background:#f1f5f9;}
+.client-avatar-sm{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;border:1.5px solid;}
+.client-fullname{font-size:11px;font-weight:500;color:#1a2b3c;}
+.client-age{font-size:9.5px;color:#6b8799;}
+.client-loc{font-size:9.5px;color:#6b8799;display:flex;align-items:center;gap:4px;}
+.client-hr{font-family:var(--mono);font-size:11px;font-weight:500;}
+.status-badge{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:20px;text-align:center;}
+.carer-chip{display:flex;align-items:center;gap:5px;font-size:9.5px;color:#1a2b3c;}
+.carer-dot{width:7px;height:7px;border-radius:50%;}
+.carers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.carer-card{background:#f8fbfc;border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:6px;transition:border-color .2s;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.carer-card:hover{background:#ecf7fa;border-color:rgba(0,151,167,.3);}
+.carer-card-top{display:flex;align-items:center;gap:6px;}
+.carer-avatar{width:26px;height:26px;border-radius:7px;background:#e4f2f5;display:flex;align-items:center;justify-content:center;font-size:12px;border:1px solid rgba(0,0,0,.08);}
+.carer-card-name{font-size:11px;font-weight:600;color:#1a2b3c;}
+.carer-card-role{font-size:9px;color:#6b8799;}
+.carer-card-loc{font-size:9.5px;color:#6b8799;display:flex;align-items:center;gap:4px;background:#eef5f8;border:1px solid rgba(0,0,0,.06);padding:2px 7px;border-radius:6px;}
+.carer-card-status{display:flex;align-items:center;justify-content:space-between;}
+.carer-status-chip{font-size:9px;font-weight:600;padding:2px 6px;border-radius:20px;}
+.alert-feed{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.alert-feed-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(0,0,0,.04);animation:slideIn .4s ease both;}
+.alert-feed-item:last-child{border-bottom:none;}
+.alert-sev{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.alert-feed-text{flex:1;font-size:11px;line-height:1.5;}
+.alert-feed-name{font-weight:600;color:#1a2b3c;}
+.alert-feed-msg{color:#6b8799;}
+.alert-feed-time{font-family:var(--mono);font-size:9px;color:#9ab0bd;margin-top:2px;}
+.alert-action{font-size:9.5px;font-weight:500;color:#0097a7;background:rgba(0,151,167,.08);border:1px solid rgba(0,151,167,.2);padding:2px 8px;border-radius:6px;cursor:pointer;white-space:nowrap;align-self:center;}
+#screen-agency .live-dot{color:#2e7d32;background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.2);}
+#screen-agency .live-dot::before{background:#2e7d32;}
+
+/* VOICE ALERT SYSTEM */
+.sound-toggle{font-family:'Raleway',sans-serif;font-size:11px;font-weight:600;padding:5px 13px;border-radius:20px;border:1px solid rgba(0,151,167,.3);background:rgba(0,151,167,.1);color:#0097a7;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.sound-toggle:hover{background:rgba(0,151,167,.2);}
+.sound-toggle.muted{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:#6b8799;}
+.voice-alert-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(229,57,53,.95);backdrop-filter:blur(12px);border:1px solid rgba(255,100,100,.4);border-radius:16px;padding:14px 22px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 8px 40px rgba(229,57,53,.35);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;opacity:0;pointer-events:none;min-width:340px;max-width:480px;}
+.voice-alert-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.voice-alert-toast-icon{font-size:22px;flex-shrink:0;animation:watchIconPulse 1.2s ease infinite;}
+.voice-alert-toast-text{flex:1;}
+.voice-alert-toast-title{font-family:'Playfair Display',serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;}
+.voice-alert-toast-sub{font-size:11px;color:rgba(255,255,255,.8);line-height:1.4;}
+.voice-wave{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.voice-wave span{width:3px;border-radius:3px;background:#fff;animation:voiceWave 0.8s ease infinite;}
+.voice-wave span:nth-child(1){height:8px;animation-delay:0s;}
+.voice-wave span:nth-child(2){height:16px;animation-delay:.1s;}
+.voice-wave span:nth-child(3){height:12px;animation-delay:.2s;}
+.voice-wave span:nth-child(4){height:18px;animation-delay:.05s;}
+.voice-wave span:nth-child(5){height:8px;animation-delay:.15s;}
+@keyframes voiceWave{0%,100%{transform:scaleY(.4);opacity:.6}50%{transform:scaleY(1);opacity:1}}
+
+/* CARER CP */
+.carer-cp-layout{display:grid;grid-template-columns:380px 1fr;gap:20px;max-width:1200px;margin:0 auto;}
+.cp-alert-banner{background:linear-gradient(135deg,rgba(255,77,109,.18),rgba(255,77,109,.06));border:1.5px solid rgba(255,77,109,.5);border-radius:16px;padding:18px 20px;margin-bottom:16px;animation:pulseGlow 2s ease infinite;position:relative;overflow:hidden;}
+.cp-alert-banner::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,77,109,.04),transparent);animation:shimmer 2.5s ease infinite;}
+.alert-banner-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.alert-banner-icon{width:38px;height:38px;border-radius:10px;background:rgba(255,77,109,.15);border:1px solid rgba(255,77,109,.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.alert-banner-label{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--red);margin-bottom:2px;}
+.alert-banner-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);}
+.alert-banner-body{font-size:13px;color:rgba(216,238,248,.85);line-height:1.6;border-left:2px solid rgba(255,77,109,.4);padding-left:12px;margin-bottom:14px;}
+.alert-banner-body strong{color:var(--red);}
+.alert-banner-from{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);}
+.alert-banner-from span{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:3px 10px;border-radius:20px;}
+.alert-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+.cp-btn{font-family:'Raleway',sans-serif;font-size:13px;font-weight:600;padding:10px 0;border-radius:10px;border:none;cursor:pointer;text-align:center;transition:all .2s;}
+.cp-btn-primary{background:var(--red);color:#fff;}.cp-btn-primary:hover{background:#e03050;}
+.cp-btn-secondary{background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);}
+.cp-client-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px;}
+.cp-client-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3a4a,#0d2535);border:2px solid rgba(255,77,109,.4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 14px rgba(255,77,109,.2);}
+.cp-client-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:3px;}
+.cp-client-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--muted);}
+.cp-vitals-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.cp-vital-mini{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center;}
+.cp-vital-mini.critical-vital{border-color:rgba(255,77,109,.4);background:rgba(255,77,109,.05);}
+.cp-vital-mini-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+.cp-vital-mini-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:800;line-height:1;}
+.cp-vital-mini-unit{font-size:9px;color:var(--muted);margin-top:2px;}
+.cp-map-panel{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-height:580px;}
+.cp-map-header{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--panel);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.cp-map-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;}
+.eta-chip{display:flex;align-items:center;gap:6px;background:rgba(57,224,121,.1);border:1px solid rgba(57,224,121,.25);color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;}
+.cp-map-canvas{flex:1;position:relative;overflow:hidden;min-height:350px;}
+.cp-map-canvas canvas{position:absolute;top:0;left:0;}
+.cp-directions{border-top:1px solid var(--border);background:var(--panel);flex-shrink:0;max-height:230px;overflow-y:auto;}
+.direction-step{display:flex;align-items:flex-start;gap:12px;padding:11px 18px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;}
+.direction-step:last-child{border-bottom:none;}
+.direction-step.active-step{background:rgba(0,200,180,.06);}
+.dir-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.dir-icon.active-icon{background:rgba(0,200,180,.15);border:1px solid rgba(0,200,180,.3);}
+.dir-icon.upcoming-icon{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);}
+.dir-text{flex:1;}
+.dir-main{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;}
+.dir-main.upcoming-text{color:var(--muted);}
+.dir-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.dir-dist{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;align-self:center;}
+
+/* MAP PIN TOOLTIPS */
+.map-tooltip{position:absolute;background:rgba(10,20,30,.9);border:1px solid rgba(0,200,180,.3);border-radius:10px;padding:8px 12px;font-size:11.5px;color:#d8eef8;pointer-events:none;white-space:nowrap;z-index:50;backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,.4);transform:translate(-50%,-100%) translateY(-10px);transition:opacity .15s;}
+.map-tooltip strong{color:#fff;display:block;font-size:12px;margin-bottom:2px;}
+.map-tooltip.hidden{opacity:0;}
+
+/* PHONE / WATCH */
+.phone-scene{display:flex;justify-content:center;align-items:flex-start;gap:60px;padding:10px 0 40px;flex-wrap:wrap;}
+.phone-frame{width:360px;background:#0a0a0f;border-radius:46px;border:2px solid rgba(255,255,255,.12);box-shadow:0 0 0 6px #111,0 0 0 7px rgba(255,255,255,.06),0 32px 80px rgba(0,0,0,.7);overflow:hidden;position:relative;flex-shrink:0;}
+.phone-notch{width:110px;height:28px;background:#0a0a0f;border-radius:0 0 20px 20px;margin:0 auto;position:relative;z-index:10;display:flex;align-items:center;justify-content:center;gap:6px;}
+.phone-notch::before{content:'';width:10px;height:10px;border-radius:50%;background:#1a1a24;border:1px solid rgba(255,255,255,.1);}
+.phone-notch::after{content:'';width:5px;height:5px;border-radius:50%;background:#1a1a24;}
+.phone-status-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 24px 0;font-size:11px;font-weight:600;color:rgba(255,255,255,.8);font-family:'Playfair Display',serif;}
+.phone-screen{background:#0f0f18;min-height:700px;position:relative;overflow:hidden;}
+.phone-home-indicator{width:120px;height:4px;background:rgba(255,255,255,.25);border-radius:10px;margin:12px auto 8px;}
+.family-phone .phone-screen{background:linear-gradient(160deg,#110a0a 0%,#0f0f18 50%);}
+.family-lock-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(255,77,109,.1) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(100,50,150,.08) 0%,transparent 50%);pointer-events:none;}
+.fam-notif-card{margin:16px 12px 0;border-radius:20px;overflow:hidden;animation:notifDrop .5s .3s cubic-bezier(.34,1.56,.64,1) both;}
+.fam-notif-header{background:rgba(255,77,109,.92);padding:12px 16px 10px;display:flex;align-items:center;gap:10px;}
+.fam-notif-app-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.fam-notif-app-name{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.9);}
+.fam-notif-time{margin-left:auto;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.65);}
+.fam-notif-body{background:rgba(20,10,10,.92);backdrop-filter:blur(20px);padding:14px 16px;border:1px solid rgba(255,77,109,.25);border-top:none;}
+.fam-notif-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:6px;}
+.fam-notif-msg{font-size:12.5px;color:rgba(255,255,255,.75);line-height:1.6;}
+.fam-notif-msg strong{color:#fff;}
+.fam-notif-actions{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(255,255,255,.08);margin-top:12px;}
+.fam-notif-btn{padding:10px 0;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;}
+.fam-notif-btn:first-child{color:var(--red);border-right:1px solid rgba(255,255,255,.08);}
+.fam-notif-btn:last-child{color:var(--sky);}
+.fam-update-section{padding:16px 14px 0;}
+.fam-section-label{font-family:var(--mono);font-size:9.5px;letter-spacing:1.2px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:10px;}
+.fam-update-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:14px 16px;margin-bottom:10px;animation:notifDrop .5s ease both;}
+.fam-update-card:nth-child(2){animation-delay:.5s}.fam-update-card:nth-child(3){animation-delay:.7s}.fam-update-card:nth-child(4){animation-delay:.9s}
+.fam-update-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.fam-update-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.fam-update-source{font-size:11px;font-weight:600;color:rgba(255,255,255,.9);}
+.fam-update-time{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:rgba(255,255,255,.35);}
+.fam-update-text{font-size:12.5px;color:rgba(255,255,255,.65);line-height:1.6;}
+.fam-update-text strong{color:rgba(255,255,255,.9);}
+.fam-vital-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.fam-vital-badge{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600;}
+.fam-progress-track{height:3px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;margin:8px 0 4px;}
+.fam-progress-fill{height:100%;border-radius:10px;animation:progressFill 1.5s 1s ease both;}
+.fam-cta{margin:16px 14px 0;background:rgba(0,200,180,.08);border:1px solid rgba(0,200,180,.2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.fam-cta-text{font-size:12px;color:rgba(255,255,255,.65);flex:1;line-height:1.5;}
+.fam-cta-text strong{color:var(--teal);}
+.fam-cta-btn{background:var(--teal);color:#000;font-size:11px;font-weight:700;padding:8px 14px;border-radius:10px;border:none;cursor:pointer;}
+.watch-scene{display:flex;justify-content:center;align-items:flex-start;gap:50px;padding:10px 0 40px;flex-wrap:wrap;}
+.watch-frame{width:220px;background:#1a1a1a;border-radius:48px;border:3px solid #2a2a2a;box-shadow:0 0 0 2px #111,inset 0 0 0 2px #2a2a2a,0 32px 80px rgba(0,0,0,.8);padding:18px 16px;position:relative;flex-shrink:0;}
+.watch-frame::before{content:'';position:absolute;right:-8px;top:50%;transform:translateY(-50%);width:8px;height:40px;background:#2a2a2a;border-radius:0 6px 6px 0;border:1px solid #333;}
+.watch-screen{background:#060810;border-radius:34px;overflow:hidden;min-height:240px;position:relative;border:1px solid #1a1a2a;}
+.watch-alert-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(255,100,50,.18) 0%,transparent 70%);animation:watchPulse 2s ease infinite;}
+.watch-content{position:relative;z-index:2;padding:14px 12px;text-align:center;}
+.watch-alert-icon{font-size:36px;margin-bottom:6px;display:block;animation:watchIconPulse 1.5s ease infinite;}
+.watch-alert-title{font-family:'Playfair Display',serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:4px;line-height:1.2;}
+.watch-alert-subtitle{font-size:10px;color:rgba(255,255,255,.55);margin-bottom:12px;}
+.watch-bp-reading{font-family:'Playfair Display',serif;font-size:28px;font-weight:800;color:#ff4d6d;line-height:1;margin-bottom:2px;text-shadow:0 0 20px rgba(255,77,109,.5);}
+.watch-bp-label{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.4);margin-bottom:12px;letter-spacing:.8px;}
+.watch-divider{height:1px;background:rgba(255,255,255,.08);margin:10px 0;}
+.watch-instruction{display:flex;align-items:flex-start;gap:7px;text-align:left;margin-bottom:8px;}
+.watch-instr-num{width:16px;height:16px;border-radius:50%;background:rgba(0,200,180,.2);border:1px solid rgba(0,200,180,.4);color:var(--teal);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.watch-instr-text{font-size:10.5px;color:rgba(255,255,255,.8);line-height:1.45;}
+.watch-status-row{display:flex;justify-content:space-around;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);}
+.watch-status-item{text-align:center;}
+.watch-status-val{font-family:'Playfair Display',serif;font-size:13px;font-weight:800;color:#fff;line-height:1;}
+.watch-status-label{font-size:8px;color:rgba(255,255,255,.35);margin-top:2px;}
+.watch-strap-top{width:150px;height:22px;background:linear-gradient(to bottom,#222,#1a1a1a);border-radius:8px 8px 0 0;margin:0 auto -6px;border:1px solid #333;border-bottom:none;}
+.watch-strap-bot{width:150px;height:22px;background:linear-gradient(to bottom,#1a1a1a,#222);border-radius:0 0 8px 8px;margin:-6px auto 0;border:1px solid #333;border-top:none;}
+.watch-companion{max-width:320px;display:flex;flex-direction:column;gap:14px;padding-top:10px;}
+.companion-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:4px;}
+.companion-sub{font-size:13px;color:var(--muted);line-height:1.6;}
+.companion-step{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:border-color .2s,transform .2s;animation:fadeUp .5s ease both;}
+.companion-step:hover{border-color:rgba(0,200,180,.3);transform:translateX(4px);}
+.companion-step:nth-child(1){animation-delay:.1s}.companion-step:nth-child(2){animation-delay:.2s}.companion-step:nth-child(3){animation-delay:.3s}.companion-step:nth-child(4){animation-delay:.4s}.companion-step:nth-child(5){animation-delay:.5s}
+.companion-step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:12px;font-weight:800;flex-shrink:0;}
+.companion-step-body{flex:1;}
+.companion-step-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.companion-step-desc{font-size:11.5px;color:var(--muted);line-height:1.5;}
+.scrollable{overflow-y:auto;}
+.scrollable::-webkit-scrollbar{width:4px;}
+.scrollable::-webkit-scrollbar-thumb{background:rgba(0,200,180,.2);border-radius:2px;}
+
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,0)}50%{box-shadow:0 0 20px 4px rgba(255,77,109,.15)}}
+@keyframes notifDrop{from{opacity:0;transform:translateY(-30px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes progressFill{from{width:0%}}
+@keyframes watchPulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes watchIconPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes sosGlow{0%,100%{box-shadow:0 0 16px rgba(255,77,109,.5),inset 0 1px 0 rgba(255,255,255,.15)}50%{box-shadow:0 0 32px rgba(255,77,109,.9),inset 0 1px 0 rgba(255,255,255,.15)}}
+@keyframes dashAnim{to{stroke-dashoffset:-40}}
+@keyframes pinPulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.2)}}
+
+/* ── SPLASH SCREEN ── */
+#splash{position:fixed;inset:0;background:#070d14;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;transition:opacity .6s ease;}
+#splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{display:flex;align-items:center;gap:14px;margin-bottom:32px;animation:fadeUp .7s ease both;}
+.splash-logo-text{font-family:'Raleway',sans-serif;font-size:28px;font-weight:700;letter-spacing:.5px;line-height:1;}
+.splash-tagline{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:rgba(255,255,255,.7);text-align:center;max-width:480px;line-height:1.5;margin-bottom:40px;animation:fadeUp .7s .15s ease both;opacity:0;animation-fill-mode:both;}
+.splash-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:48px;animation:fadeUp .7s .28s ease both;opacity:0;animation-fill-mode:both;}
+.splash-pill{font-family:'Raleway',sans-serif;font-size:12px;font-weight:600;padding:7px 16px;border-radius:20px;border:1px solid rgba(0,200,180,.25);background:rgba(0,200,180,.07);color:var(--teal);}
+.splash-pill.red{border-color:rgba(255,77,109,.25);background:rgba(255,77,109,.07);color:var(--red);}
+.splash-pill.amber{border-color:rgba(255,179,71,.25);background:rgba(255,179,71,.07);color:var(--amber);}
+.splash-pill.sky{border-color:rgba(56,189,248,.25);background:rgba(56,189,248,.07);color:var(--sky);}
+.splash-cta{font-family:'Raleway',sans-serif;font-size:15px;font-weight:700;padding:14px 48px;border-radius:12px;border:none;background:linear-gradient(135deg,#00c8b4,#0097a7);color:#000;cursor:pointer;transition:transform .2s,box-shadow .2s;animation:fadeUp .7s .4s ease both;opacity:0;animation-fill-mode:both;letter-spacing:.3px;}
+.splash-cta:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,200,180,.35);}
+.splash-note{font-size:11px;color:var(--muted);margin-top:16px;animation:fadeUp .7s .5s ease both;opacity:0;animation-fill-mode:both;}
+.splash-divider{width:60px;height:1px;background:rgba(0,200,180,.2);margin:32px auto;animation:fadeUp .7s .22s ease both;opacity:0;animation-fill-mode:both;}
+.splash-scenario{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;max-width:420px;line-height:1.8;animation:fadeUp .7s .35s ease both;opacity:0;animation-fill-mode:both;}
+.splash-scenario strong{color:var(--text);}
+
+/* ── MOBILE RESPONSIVE ── */
+@media(max-width:768px){
+  nav{padding:10px 14px;flex-wrap:wrap;gap:8px;}
+  .nav-tabs{gap:4px;flex-wrap:wrap;order:3;width:100%;}
+  .tab-btn{font-size:11px;padding:6px 10px;border-radius:7px;}
+  .screens{padding:16px;}
+  .vitals-grid{grid-template-columns:repeat(2,1fr);}
+  .bottom-row{grid-template-columns:1fr;}
+  .agency-layout{grid-template-columns:1fr;height:auto;}
+  .map-panel{min-height:320px;}
+  .carer-cp-layout{grid-template-columns:1fr;}
+  .phone-scene{gap:24px;padding:10px 0 24px;}
+  .phone-frame{width:100%;max-width:340px;}
+  .watch-scene{gap:24px;}
+  .watch-frame{width:180px;}
+  .watch-companion{max-width:100%;}
+  .carers-grid{grid-template-columns:repeat(2,1fr);}
+  .vital-value{font-size:32px;}
+  .ecg-canvas{height:60px;}
+  .splash-logo-text{font-size:22px;}
+  .splash-tagline{font-size:15px;}
+  .splash-cta{padding:12px 36px;font-size:14px;}
+}
+
+/* ── GUIDED TOUR ── */
+.tour-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;pointer-events:none;transition:opacity .3s;}
+.tour-overlay.hidden{opacity:0;}
+.tour-spotlight{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.72);z-index:501;pointer-events:none;transition:all .4s cubic-bezier(.4,0,.2,1);}
+.tour-bubble{position:fixed;z-index:502;background:#0c1824;border:1px solid rgba(0,200,180,.3);border-radius:16px;padding:18px 20px;max-width:280px;box-shadow:0 8px 40px rgba(0,0,0,.5);animation:fadeUp .3s ease both;}
+.tour-bubble-step{font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:1px;margin-bottom:6px;}
+.tour-bubble-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.tour-bubble-body{font-size:12.5px;color:rgba(216,238,248,.75);line-height:1.6;margin-bottom:14px;}
+.tour-bubble-actions{display:flex;align-items:center;justify-content:space-between;}
+.tour-btn{font-family:'Raleway',sans-serif;font-size:12px;font-weight:600;padding:7px 18px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;}
+.tour-btn-next{background:var(--teal);color:#000;}
+.tour-btn-next:hover{background:var(--teal2);}
+.tour-btn-skip{background:transparent;color:var(--muted);font-size:11px;}
+.tour-btn-skip:hover{color:var(--text);}
+.tour-dots{display:flex;gap:5px;align-items:center;}
+.tour-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);}
+.tour-dot.active{background:var(--teal);width:18px;border-radius:3px;}
+.tour-bar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:503;background:#0c1824;border:1px solid rgba(0,200,180,.2);border-radius:30px;padding:8px 20px;display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted);box-shadow:0 4px 24px rgba(0,0,0,.4);}
+.tour-bar-btn{font-family:'Raleway',sans-serif;font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;border:1px solid rgba(0,200,180,.3);background:rgba(0,200,180,.1);color:var(--teal);cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-logo">
+    <svg width="48" height="48" viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="19" stroke="white" stroke-width="1" fill="none" opacity=".9"/><line x1="2" y1="21" x2="40" y2="21" stroke="white" stroke-width=".7" opacity=".5"/><ellipse cx="21" cy="21" rx="10" ry="19" stroke="white" stroke-width=".7" fill="none" opacity=".5"/><ellipse cx="21" cy="21" rx="19" ry="7" stroke="white" stroke-width=".7" fill="none" opacity=".4"/><polyline points="4,21 10,21 13,21 15,14 17,28 19,10 21,32 23,21 27,21 38,21" stroke="#e8294a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="splash-logo-text"><span style="color:rgba(255,255,255,.85);">eco</span><span style="color:#e8294a;font-weight:800;letter-spacing:1.5px;">SENSSE</span><span style="color:rgba(255,255,255,.85);">health</span></div>
+  </div>
+  <div class="splash-tagline">Proactive health monitoring for elderly care —<br>connecting patients, carers, families & agencies in real time.</div>
+  <div class="splash-divider"></div>
+  <div class="splash-scenario"><strong>Demo scenario:</strong> Margaret Thornton, 78, develops a hypertensive crisis at home.<br>Watch how ecoSENSSEhealth detects, alerts, and coordinates the full response — across every stakeholder — in under 4 minutes.</div>
+  <div class="splash-pills" style="margin-top:24px;">
+    <div class="splash-pill red">🚨 Crisis Detection</div>
+    <div class="splash-pill">📡 Live Vitals</div>
+    <div class="splash-pill amber">🏥 Agency Dispatch</div>
+    <div class="splash-pill sky">👨‍👩‍👧 Family Alerts</div>
+    <div class="splash-pill">⌚ Wearable Guidance</div>
+  </div>
+  <button class="splash-cta" id="start-demo-btn">▶ Start Demo</button>
+  <div class="splash-note">Use the tabs at the top to explore each stakeholder view</div>
+</div>
+
+
+<nav>
+  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <svg width="36" height="36" viewBox="0 0 42 42" fill="none"><circle cx="21" cy="21" r="19" stroke="white" stroke-width="1" fill="none" opacity=".9"/><line x1="2" y1="21" x2="40" y2="21" stroke="white" stroke-width=".7" opacity=".5"/><ellipse cx="21" cy="21" rx="10" ry="19" stroke="white" stroke-width=".7" fill="none" opacity=".5"/><ellipse cx="21" cy="21" rx="19" ry="7" stroke="white" stroke-width=".7" fill="none" opacity=".4"/><polyline points="4,21 10,21 13,21 15,14 17,28 19,10 21,32 23,21 27,21 38,21" stroke="#e8294a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div style="font-family:'Raleway',sans-serif;font-size:16px;font-weight:700;letter-spacing:.3px;line-height:1;white-space:nowrap;"><span style="color:rgba(255,255,255,.85);">eco</span><span style="color:#e8294a;font-weight:800;letter-spacing:1.5px;">SENSSE</span><span style="color:rgba(255,255,255,.85);">health</span><span style="font-size:9px;font-weight:500;color:var(--muted);letter-spacing:1.5px;display:block;margin-top:2px;text-transform:uppercase;">Proactive Elderly Care</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchScreen('vitals',this)">👵 Patient Vitals</button>
+    <button class="tab-btn" onclick="switchScreen('agency',this)">🏥 Agency Dashboard</button>
+    <button class="tab-btn" onclick="switchScreen('carer',this)" style="position:relative;">👩‍⚕️ Carer CP <span style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1s infinite;display:inline-block;"></span></button>
+    <button class="tab-btn" onclick="switchScreen('family',this)" style="position:relative;">👨‍👩‍👧 Family Alert <span style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1s infinite;display:inline-block;"></span></button>
+    <button class="tab-btn" onclick="switchScreen('wearable',this)" style="position:relative;">⌚ Wearable <span style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:var(--amber);animation:blink 1s infinite;display:inline-block;"></span></button>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <div class="live-dot">LIVE</div>
+    <div class="nav-time" id="clock" style="display:none;" class="hide-mobile">--:--:--</div>
+  </div>
+</nav>
+
+<div class="screens" style="padding-top:24px;">
+
+<!-- ══ SCREEN 1: PATIENT VITALS ══ -->
+<div class="screen active" id="screen-vitals">
+  <div class="vitals-layout">
+    <div class="patient-bar">
+      <div class="patient-info">
+        <div class="patient-avatar">👵</div>
+        <div>
+          <div class="patient-name">Margaret Thornton</div>
+          <div class="patient-meta"><span>📅 78 yrs</span><span>⚖️ 62 kg</span><span>📍 14 Oak Lane, Bristol</span><span>🩺 Dr. O'Reilly</span></div>
+        </div>
+      </div>
+      <div class="patient-status-group">
+        <div class="status-pill" style="background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.4);animation:blink 1.2s infinite;">⚠ CRITICAL</div>
+        <div class="status-pill" style="background:rgba(0,200,180,.08);color:var(--teal);border:1px solid var(--border);">⌚ Fitbit Sense 3</div>
+        <div class="status-pill" style="background:rgba(56,189,248,.08);color:var(--sky);border:1px solid rgba(56,189,248,.2);">🔗 Connected</div>
+      </div>
+    </div>
+    <div class="vitals-grid">
+      <div class="vital-card heart"><div class="vital-label"><span>❤️</span> Heart Rate</div><div class="vital-value" style="color:var(--red);" id="hr-val">74</div><div class="vital-unit">bpm</div><canvas class="sparkline" id="spark-hr"></canvas><div class="vital-trend"><span>Normal: 60–100</span><span class="trend-badge" style="background:rgba(57,224,121,.12);color:var(--green);">▼ 2%</span></div></div>
+      <div class="vital-card spo2"><div class="vital-label"><span>🫁</span> Blood Oxygen</div><div class="vital-value" style="color:var(--sky);" id="spo2-val">97</div><div class="vital-unit">SpO₂ %</div><canvas class="sparkline" id="spark-spo2"></canvas><div class="vital-trend"><span>Normal: ≥ 95%</span><span class="trend-badge" style="background:rgba(57,224,121,.12);color:var(--green);">stable</span></div></div>
+      <div class="vital-card bp" style="border-color:rgba(255,77,109,.35);box-shadow:0 0 24px rgba(255,77,109,.12);"><div class="vital-label"><span>💉</span> Blood Pressure</div><div class="vital-value" style="color:var(--red);font-size:32px;" id="bp-val">182/114</div><div class="vital-unit">mmHg <span style="font-size:10px;color:var(--red);animation:blink 1s infinite;display:inline-block;">⚠ HYPERTENSIVE CRISIS</span></div><canvas class="sparkline" id="spark-bp"></canvas><div class="vital-trend"><span style="color:var(--red);">Normal: 90–120 / 60–80</span><span class="trend-badge" style="background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.3);">▲▲ CRITICAL</span></div></div>
+      <div class="vital-card temp"><div class="vital-label"><span>🌡️</span> Temperature</div><div class="vital-value" style="color:var(--purple);" id="temp-val">36.7</div><div class="vital-unit">°C</div><canvas class="sparkline" id="spark-temp"></canvas><div class="vital-trend"><span>Normal: 36.1–37.2°C</span><span class="trend-badge" style="background:rgba(167,139,250,.12);color:var(--purple);">normal</span></div></div>
+    </div>
+    <div class="ecg-row">
+      <div class="ecg-header"><div class="ecg-title"><span style="color:var(--red);">〰</span> ECG Live Feed <span class="live-dot" style="font-size:10px;">STREAMING</span></div><div style="font-family:var(--mono);font-size:11px;color:var(--muted);">Lead II · 25mm/s · 10mm/mV</div></div>
+      <div style="position:relative;overflow:hidden;border-radius:8px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.04);"><canvas class="ecg-canvas" id="ecg-canvas" height="80"></canvas></div>
+      <div class="ecg-meta"><div class="ecg-stat"><strong style="color:var(--red);">74 bpm</strong> Heart Rate</div><div class="ecg-stat"><strong style="color:var(--green);">Sinus Rhythm</strong> Rhythm</div><div class="ecg-stat"><strong>180 ms</strong> PR Interval</div><div class="ecg-stat"><strong>94 ms</strong> QRS Duration</div><div class="ecg-stat"><strong style="color:var(--green);">Normal</strong> ST Segment</div></div>
+    </div>
+    <div class="bottom-row">
+      <div class="alert-panel">
+        <div class="panel-title">🔔 Recent Alerts</div>
+        <div class="alert-item"><div class="alert-dot" style="background:var(--red);box-shadow:0 0 8px var(--red);animation:blink 1s infinite;"></div><div><div class="alert-text" style="color:var(--red);font-weight:600;">⚠ CRITICAL: Blood pressure at 182/114 mmHg — Hypertensive Crisis.</div><div class="alert-time">Now · 13:04 · Family, GP & Agency notified</div></div></div>
+        <div class="alert-item"><div class="alert-dot" style="background:var(--amber);"></div><div><div class="alert-text">BP steadily rising over last 45 mins — escalation detected by AI engine.</div><div class="alert-time">Today 12:22 · Sent to Family & Agency</div></div></div>
+        <div class="alert-item"><div class="alert-dot" style="background:var(--sky);"></div><div><div class="alert-text">Morning medication reminder sent. Margaret acknowledged via wearable tap.</div><div class="alert-time">Today 08:30 · Automated</div></div></div>
+        <div class="alert-item"><div class="alert-dot" style="background:var(--green);"></div><div><div class="alert-text">All vitals within normal range. Night-time sleep quality: Good (6h 40m).</div><div class="alert-time">Yesterday 23:55 · Routine</div></div></div>
+      </div>
+      <div class="activity-panel">
+        <div class="panel-title">🚶 Today's Activity</div>
+        <div class="activity-row"><div class="activity-icon" style="background:rgba(57,224,121,.1);color:var(--green);">🌅</div><div class="activity-label">Woke up — all vitals normal</div><div class="activity-time">07:12</div></div>
+        <div class="activity-row"><div class="activity-icon" style="background:rgba(56,189,248,.1);color:var(--sky);">💊</div><div class="activity-label">Medication taken (Amlodipine 5mg)</div><div class="activity-time">08:34</div></div>
+        <div class="activity-row"><div class="activity-icon" style="background:rgba(255,179,71,.1);color:var(--amber);">🚶</div><div class="activity-label">1,240 steps — garden walk</div><div class="activity-time">09:50</div></div>
+        <div class="activity-row"><div class="activity-icon" style="background:rgba(167,139,250,.1);color:var(--purple);">🛋️</div><div class="activity-label">Rest period — HR normalising</div><div class="activity-time">11:20</div></div>
+        <div class="activity-row"><div class="activity-icon" style="background:rgba(0,200,180,.1);color:var(--teal);">🍽️</div><div class="activity-label">Lunch — no anomalies detected</div><div class="activity-time">12:40</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: AGENCY DASHBOARD ══ -->
+<div class="screen" id="screen-agency">
+  <div class="agency-layout">
+    <div class="map-panel">
+      <div class="map-header">
+        <div class="map-title">📍 Live Carer & Client Map — Bristol, Bedminster</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleAlertSound()">🔊 Voice Alerts ON</button>
+          <div class="live-dot" style="color:#2e7d32;background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.2);font-size:10px;">LIVE</div>
+        </div>
+      </div>
+      <div class="map-canvas" id="agency-map-wrap">
+        <canvas id="agency-map-canvas"></canvas>
+      </div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#ff4d6d;"></div> Alert Client</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffb347;"></div> Watch Client</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#39e079;"></div> Stable Client</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00c8b4;"></div> Carer (en route)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#38bdf8;"></div> Carer (on visit)</div>
+      </div>
+    </div>
+    <div class="right-panel scrollable">
+      <div class="agency-header-bar">
+        <div><div class="agency-name">BrightCare Home Services</div><div class="agency-sub">Bristol District · Shift: Morning 06:00–14:00</div></div>
+        <div class="agency-stats">
+          <div class="astat"><div class="astat-num">12</div><div class="astat-label">Active Clients</div></div>
+          <div class="astat"><div class="astat-num">5</div><div class="astat-label">Carers On Shift</div></div>
+          <div class="astat"><div class="astat-num" style="color:#ffcdd2;">1</div><div class="astat-label">Active Alert</div></div>
+        </div>
+      </div>
+      <div class="clients-section">
+        <div class="section-head"><div class="section-head-title">🧑‍🤝‍🧑 Client Status Overview</div><div class="live-dot" style="color:#2e7d32;background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.2);font-size:10px;">LIVE</div></div>
+        <div class="client-row header-row"><div></div><div>Client</div><div>Location</div><div>Heart Rate</div><div>Status</div><div>Carer</div></div>
+        <div class="client-row"><div class="client-avatar-sm" style="background:rgba(229,57,53,.08);border-color:rgba(229,57,53,.3);">👵</div><div><div class="client-fullname">Margaret T.</div><div class="client-age">78 yrs</div></div><div class="client-loc">📍 Oak Lane</div><div class="client-hr" style="color:#e53935;">74 <span style="font-size:10px;color:#9ab0bd;">bpm</span></div><div class="status-badge" style="background:rgba(229,57,53,.08);color:#e53935;border:1px solid rgba(229,57,53,.25);animation:blink 1.2s infinite;">⚠ CRITICAL</div><div class="carer-chip"><div class="carer-dot" style="background:#0097a7;"></div>Sarah</div></div>
+        <div class="client-row"><div class="client-avatar-sm" style="background:rgba(229,57,53,.08);border-color:rgba(229,57,53,.3);">👴</div><div><div class="client-fullname">Robert K.</div><div class="client-age">83 yrs</div></div><div class="client-loc">📍 Elm Road</div><div class="client-hr" style="color:#e53935;">112 <span style="font-size:10px;color:#9ab0bd;">bpm</span></div><div class="status-badge" style="background:rgba(229,57,53,.08);color:#e53935;border:1px solid rgba(229,57,53,.25);">⚠ ALERT</div><div class="carer-chip"><div class="carer-dot" style="background:#0288d1;"></div>James</div></div>
+        <div class="client-row"><div class="client-avatar-sm" style="background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.3);">👵</div><div><div class="client-fullname">Dorothy M.</div><div class="client-age">91 yrs</div></div><div class="client-loc">📍 Pine Ave</div><div class="client-hr" style="color:#2e7d32;">68 <span style="font-size:10px;color:#9ab0bd;">bpm</span></div><div class="status-badge" style="background:rgba(46,125,50,.08);color:#2e7d32;border:1px solid rgba(46,125,50,.25);">STABLE</div><div class="carer-chip"><div class="carer-dot" style="background:#f57c00;"></div>Liu</div></div>
+        <div class="client-row"><div class="client-avatar-sm" style="background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.3);">👴</div><div><div class="client-fullname">Harold P.</div><div class="client-age">75 yrs</div></div><div class="client-loc">📍 Maple St</div><div class="client-hr" style="color:#2e7d32;">71 <span style="font-size:10px;color:#9ab0bd;">bpm</span></div><div class="status-badge" style="background:rgba(46,125,50,.08);color:#2e7d32;border:1px solid rgba(46,125,50,.25);">STABLE</div><div class="carer-chip"><div class="carer-dot" style="background:#2e7d32;"></div>Nina</div></div>
+        <div class="client-row"><div class="client-avatar-sm" style="background:rgba(46,125,50,.08);border-color:rgba(46,125,50,.3);">👵</div><div><div class="client-fullname">Edna W.</div><div class="client-age">86 yrs</div></div><div class="client-loc">📍 Cedar Rd</div><div class="client-hr" style="color:#2e7d32;">66 <span style="font-size:10px;color:#9ab0bd;">bpm</span></div><div class="status-badge" style="background:rgba(46,125,50,.08);color:#2e7d32;border:1px solid rgba(46,125,50,.25);">STABLE</div><div class="carer-chip"><div class="carer-dot" style="background:#7b1fa2;"></div>Tom</div></div>
+      </div>
+      <div>
+        <div class="section-head" style="background:transparent;border:none;padding:0 0 10px 2px;"><div class="section-head-title" style="color:#1a2b3c;">👩‍⚕️ Carer Locations</div></div>
+        <div class="carers-grid">
+          <div class="carer-card"><div class="carer-card-top"><div class="carer-avatar">👩</div><div><div class="carer-card-name">Sarah Mulligan</div><div class="carer-card-role">Senior Carer</div></div></div><div class="carer-card-loc">📍 Oak Lane · en route</div><div class="carer-card-status"><span class="carer-status-chip" style="background:rgba(0,151,167,.1);color:#0097a7;border:1px solid rgba(0,151,167,.25);">On Visit</span><span style="font-family:var(--mono);font-size:10px;color:#9ab0bd;">ETA 2 min</span></div></div>
+          <div class="carer-card"><div class="carer-card-top"><div class="carer-avatar">👨</div><div><div class="carer-card-name">James O'Brien</div><div class="carer-card-role">Carer</div></div></div><div class="carer-card-loc">📍 Elm Road · visiting</div><div class="carer-card-status"><span class="carer-status-chip" style="background:rgba(229,57,53,.08);color:#e53935;border:1px solid rgba(229,57,53,.2);">Alert Visit</span><span style="font-family:var(--mono);font-size:10px;color:#9ab0bd;">Now</span></div></div>
+          <div class="carer-card"><div class="carer-card-top"><div class="carer-avatar">👩</div><div><div class="carer-card-name">Liu Wei</div><div class="carer-card-role">Carer</div></div></div><div class="carer-card-loc">📍 Pine Ave · arrived</div><div class="carer-card-status"><span class="carer-status-chip" style="background:rgba(46,125,50,.08);color:#2e7d32;border:1px solid rgba(46,125,50,.2);">Checked In</span><span style="font-family:var(--mono);font-size:10px;color:#9ab0bd;">09:45</span></div></div>
+        </div>
+      </div>
+      <div class="alert-feed">
+        <div class="section-head" style="border-radius:12px 12px 0 0;"><div class="section-head-title">🔔 Live Alert Feed</div><div style="font-family:var(--mono);font-size:10px;color:#9ab0bd;">Auto-refresh · 5s</div></div>
+        <div class="alert-feed-item" id="feed-robert-hr"><div class="alert-sev" style="background:var(--red);box-shadow:0 0 8px var(--red);"></div><div class="alert-feed-text"><div><span class="alert-feed-name">Robert K.</span> <span class="alert-feed-msg">— HR spiked to 112 bpm. James O'Brien dispatched.</span></div><div class="alert-feed-time">13:02 · CRITICAL · Family notified</div></div><div class="alert-action" onclick="acknowledgeAlert('robert-hr', this)">Respond</div></div>
+        <div class="alert-feed-item" id="feed-margaret-bp"><div class="alert-sev" style="background:var(--red);box-shadow:0 0 8px var(--red);animation:blink 1s infinite;"></div><div class="alert-feed-text"><div><span class="alert-feed-name">Margaret T.</span> <span class="alert-feed-msg">— BP at 182/114 mmHg. Hypertensive crisis. Sarah M. redirected.</span></div><div class="alert-feed-time">13:04 · CRITICAL · Family + GP notified</div></div><div class="alert-action" onclick="acknowledgeAlert('margaret-bp', this)">Respond</div></div>
+        <div class="alert-feed-item"><div class="alert-sev" style="background:var(--green);"></div><div class="alert-feed-text"><div><span class="alert-feed-name">Dorothy M.</span> <span class="alert-feed-msg">— Morning vitals check complete. All readings normal.</span></div><div class="alert-feed-time">08:00 · ROUTINE</div></div><div class="alert-action">View</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: CARER CP ══ -->
+<div class="screen" id="screen-carer">
+  <div class="carer-cp-layout">
+    <div>
+      <div class="cp-alert-banner">
+        <div class="alert-banner-top"><div class="alert-banner-icon">🚨</div><div><div class="alert-banner-label">⚠ URGENT DISPATCH — BRIGHTCARE HOME SERVICES</div><div class="alert-banner-title">Hypertensive Crisis — Immediate Response Required</div></div></div>
+        <div class="alert-banner-body"><strong>Margaret Thornton</strong> (78) at <strong>14 Oak Lane, Bristol BS3 4EP</strong> is showing BP of <strong>182/114 mmHg</strong> — a hypertensive crisis. ecoSENSSEhealth has auto-notified her family and GP.<br><br>Please respond immediately. Call 999 if condition worsens on arrival.</div>
+        <div class="alert-banner-from"><span>📤 From: BrightCare Dispatch</span><span>🕐 Sent: 13:04</span><span>📱 Sarah Mulligan</span></div>
+        <div class="alert-actions"><button class="cp-btn cp-btn-primary" onclick="dismissCarerAlert(this)">✓ Acknowledge</button><button class="cp-btn cp-btn-secondary">📞 Call Agency</button></div>
+      </div>
+      <div class="cp-client-card"><div class="cp-client-avatar">👵</div><div style="flex:1;"><div class="cp-client-name">Margaret Thornton</div><div class="cp-client-meta"><span>📅 78 yrs</span><span>🩸 Type B+</span><span>⚖️ 62 kg</span><span>💊 Amlodipine</span><span>🚨 Hypertension history</span></div></div></div>
+      <div class="cp-vitals-strip">
+        <div class="cp-vital-mini critical-vital"><div class="cp-vital-mini-label">Blood Pressure</div><div class="cp-vital-mini-val" style="color:var(--red);font-size:15px;">182/114</div><div class="cp-vital-mini-unit" style="color:var(--red);">mmHg ⚠</div></div>
+        <div class="cp-vital-mini"><div class="cp-vital-mini-label">Heart Rate</div><div class="cp-vital-mini-val" style="color:var(--red);">88</div><div class="cp-vital-mini-unit">bpm</div></div>
+        <div class="cp-vital-mini"><div class="cp-vital-mini-label">SpO₂</div><div class="cp-vital-mini-val" style="color:var(--sky);">96</div><div class="cp-vital-mini-unit">%</div></div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;">📞 Emergency Contacts</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:13px;font-weight:600;">David Thornton</div><div style="font-size:11px;color:var(--muted);">Son · Next of Kin</div></div><button class="cp-btn cp-btn-primary" style="padding:6px 16px;font-size:12px;border-radius:8px;">📞 Call</button></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);"><div><div style="font-size:13px;font-weight:600;">Dr. Siobhan O'Reilly</div><div style="font-size:11px;color:var(--muted);">GP · Southville Surgery</div></div><button class="cp-btn cp-btn-secondary" style="padding:6px 16px;font-size:12px;border-radius:8px;">📞 Call</button></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);"><div><div style="font-size:13px;font-weight:600;color:var(--red);">999 Emergency Services</div><div style="font-size:11px;color:var(--muted);">If condition deteriorates on arrival</div></div><button class="cp-btn cp-btn-primary" style="padding:6px 16px;font-size:12px;border-radius:8px;background:var(--red);">🚑 999</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="cp-map-panel">
+      <div class="cp-map-header">
+        <div><div class="cp-map-title">📍 Navigation to Margaret's Home</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">14 Oak Lane, Bristol BS3 4EP</div></div>
+        <div class="eta-chip">🕐 ETA 4 min · 1.2 km</div>
+      </div>
+      <div class="cp-map-canvas" id="carer-map-wrap">
+        <canvas id="carer-map-canvas"></canvas>
+      </div>
+      <div class="cp-directions">
+        <div class="direction-step active-step"><div class="dir-icon active-icon">⬆️</div><div class="dir-text"><div class="dir-main" style="color:var(--teal);">Head north on Windmill Hill Rd</div><div class="dir-sub">Continue past the junction</div></div><div class="dir-dist" style="color:var(--teal);">0.3 km</div></div>
+        <div class="direction-step"><div class="dir-icon upcoming-icon">↰</div><div class="dir-text"><div class="dir-main upcoming-text">Turn left onto Bedminster Rd</div><div class="dir-sub">At the traffic lights</div></div><div class="dir-dist">0.4 km</div></div>
+        <div class="direction-step"><div class="dir-icon upcoming-icon">⬆️</div><div class="dir-text"><div class="dir-main upcoming-text">Continue north on Park Rd</div><div class="dir-sub">Pass Victoria Park on your right</div></div><div class="dir-dist">0.2 km</div></div>
+        <div class="direction-step"><div class="dir-icon upcoming-icon">↱</div><div class="dir-text"><div class="dir-main upcoming-text">Turn right onto North St</div><div class="dir-sub">After the park</div></div><div class="dir-dist">0.2 km</div></div>
+        <div class="direction-step"><div class="dir-icon upcoming-icon">↰</div><div class="dir-text"><div class="dir-main upcoming-text">Turn left onto Oak Lane</div><div class="dir-sub">Destination on your left</div></div><div class="dir-dist">0.1 km</div></div>
+        <div class="direction-step"><div class="dir-icon" style="background:rgba(255,77,109,.15);border:1px solid rgba(255,77,109,.3);">🏠</div><div class="dir-text"><div class="dir-main" style="color:var(--red);">14 Oak Lane — Arrive at destination</div><div class="dir-sub">Key safe: <strong style="color:var(--text);">4821</strong></div></div><div class="dir-dist" style="color:var(--red);">dest.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 4: FAMILY ALERT ══ -->
+<div class="screen" id="screen-family">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:32px;animation:fadeUp .5s ease both;">
+      <div style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--red);background:rgba(255,77,109,.08);border:1px solid rgba(255,77,109,.2);padding:4px 14px;border-radius:20px;margin-bottom:12px;">⚠ EMERGENCY NOTIFICATION SENT</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:800;margin-bottom:6px;">Family Notification View</h2>
+      <p style="font-size:13.5px;color:var(--muted);">What David Thornton (Margaret's son) sees on his phone right now</p>
+    </div>
+    <div class="phone-scene">
+      <div class="phone-frame family-phone" style="animation:fadeUp .5s .1s ease both;opacity:0;animation-fill-mode:both;">
+        <div class="phone-notch"></div>
+        <div class="phone-status-bar"><span>9:04</span><div style="display:flex;align-items:center;gap:4px;font-size:10px;"><span>●●●●</span><span>WiFi</span><span>🔋87%</span></div></div>
+        <div class="phone-screen">
+          <div class="family-lock-bg"></div>
+          <div class="fam-notif-card">
+            <div class="fam-notif-header"><div class="fam-notif-app-icon">🌿</div><div><div class="fam-notif-app-name">ecoSENSSEhealth · URGENT ALERT</div></div><div class="fam-notif-time">now</div></div>
+            <div class="fam-notif-body">
+              <div class="fam-notif-title">🚨 Margaret needs attention</div>
+              <div class="fam-notif-msg">Her blood pressure has reached <strong>182/114 mmHg</strong> — a hypertensive crisis. <strong>Help is already on the way.</strong></div>
+              <div class="fam-vital-row">
+                <div class="fam-vital-badge" style="background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.3);">BP 182/114 ⚠</div>
+                <div class="fam-vital-badge" style="background:rgba(255,179,71,.1);color:var(--amber);border:1px solid rgba(255,179,71,.2);">HR 88 bpm</div>
+                <div class="fam-vital-badge" style="background:rgba(56,189,248,.1);color:var(--sky);border:1px solid rgba(56,189,248,.2);">SpO₂ 96%</div>
+              </div>
+              <div class="fam-notif-actions"><button class="fam-notif-btn">📞 Call Mum</button><button class="fam-notif-btn">📱 Open App</button></div>
+            </div>
+          </div>
+          <div class="fam-update-section">
+            <div class="fam-section-label">Live updates from ecoSENSSEhealth</div>
+            <div class="fam-update-card" style="animation-delay:.4s;"><div class="fam-update-top"><div class="fam-update-icon" style="background:rgba(0,200,180,.12);border:1px solid rgba(0,200,180,.2);">🚗</div><div><div class="fam-update-source">BrightCare Home Services</div></div><div class="fam-update-time">13:04</div></div><div class="fam-update-text"><strong>Sarah Mulligan</strong> dispatched — <strong>4 minutes away</strong>. Briefed on hypertensive crisis.</div><div style="margin-top:10px;"><div style="display:flex;justify-content:space-between;font-size:9.5px;color:rgba(255,255,255,.4);margin-bottom:5px;"><span>Dispatched</span><span style="color:var(--teal);font-weight:600;">En route → 4 min</span><span>Arrived</span></div><div class="fam-progress-track"><div class="fam-progress-fill" style="width:60%;background:linear-gradient(90deg,var(--teal),var(--teal2));"></div></div></div></div>
+            <div class="fam-update-card" style="animation-delay:.6s;"><div class="fam-update-top"><div class="fam-update-icon" style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);">🩺</div><div><div class="fam-update-source">Dr. Siobhan O'Reilly</div></div><div class="fam-update-time">13:04</div></div><div class="fam-update-text">GP notified. Advises <strong>do not give additional medication</strong> until assessed.</div></div>
+            <div class="fam-update-card" style="animation-delay:.8s;"><div class="fam-update-top"><div class="fam-update-icon" style="background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.2);">⌚</div><div><div class="fam-update-source">Margaret's Fitbit</div></div><div class="fam-update-time">13:04</div></div><div class="fam-update-text">Wearable <strong>guided her to sit and rest</strong>. Alert acknowledged via wrist tap.</div></div>
+          </div>
+          <div class="fam-cta"><div class="fam-cta-text"><strong>Stay informed</strong> — open the app for live vitals and carer GPS.</div><button class="fam-cta-btn">Open App →</button></div>
+          <div style="height:24px;"></div>
+        </div>
+        <div class="phone-home-indicator"></div>
+      </div>
+      <div style="max-width:340px;padding-top:10px;animation:fadeUp .5s .3s ease both;opacity:0;animation-fill-mode:both;">
+        <div class="companion-title">What the<br><span style="color:var(--teal);">family sees</span></div>
+        <div class="companion-sub" style="margin-bottom:20px;">A layered alert — emergency first, then continuous updates so family always knows what's happening.</div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.3);">1</div><div class="companion-step-body"><div class="companion-step-title">Instant emergency push notification</div><div class="companion-step-desc">Hits the lock screen immediately with vitals and a clear summary.</div></div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(0,200,180,.1);color:var(--teal);border:1px solid var(--border);">2</div><div class="companion-step-body"><div class="companion-step-title">Carer dispatch confirmation</div><div class="companion-step-desc">Family sees who is responding, their ETA, and that they've been briefed.</div></div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(56,189,248,.1);color:var(--sky);border:1px solid rgba(56,189,248,.2);">3</div><div class="companion-step-body"><div class="companion-step-title">GP medical guidance</div><div class="companion-step-desc">The GP's advice is surfaced directly, preventing harmful well-meaning actions.</div></div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(255,179,71,.1);color:var(--amber);border:1px solid rgba(255,179,71,.2);">4</div><div class="companion-step-body"><div class="companion-step-title">Wearable status confirmation</div><div class="companion-step-desc">Family is reassured that Margaret has received guidance and acknowledged it.</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 5: WEARABLE ══ -->
+<div class="screen" id="screen-wearable">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:32px;animation:fadeUp .5s ease both;">
+      <div style="display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:1.2px;color:var(--amber);background:rgba(255,179,71,.08);border:1px solid rgba(255,179,71,.2);padding:4px 14px;border-radius:20px;margin-bottom:12px;">⌚ WEARABLE ALERT ACTIVE</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:800;margin-bottom:6px;">Elderly Wearable Notification</h2>
+      <p style="font-size:13.5px;color:var(--muted);">What Margaret sees on her Fitbit — guiding her while help is on the way</p>
+    </div>
+    <div class="watch-scene">
+      <div style="display:flex;flex-direction:column;align-items:center;animation:fadeUp .5s .1s ease both;opacity:0;animation-fill-mode:both;">
+        <div class="watch-strap-top"></div>
+        <div class="watch-frame">
+          <div class="watch-screen">
+            <div class="watch-alert-bg"></div>
+            <div class="watch-content">
+              <span class="watch-alert-icon">🚨</span>
+              <div class="watch-alert-title">High Blood Pressure<br>Detected</div>
+              <div class="watch-alert-subtitle">Please stay calm, Margaret</div>
+              <div class="watch-bp-reading">182/114</div>
+              <div class="watch-bp-label">MMHG · BP READING</div>
+              <div class="watch-divider"></div>
+              <div class="watch-instruction"><div class="watch-instr-num">1</div><div class="watch-instr-text"><strong style="color:#fff;">Lie flat</strong> on your back right now</div></div>
+              <div class="watch-instruction"><div class="watch-instr-num">2</div><div class="watch-instr-text"><strong style="color:#fff;">Close eyes</strong> — stay calm &amp; still</div></div>
+              <div class="watch-instruction"><div class="watch-instr-num">3</div><div class="watch-instr-text"><strong style="color:#fff;">Box breathe</strong> — 4s in · 4s hold · 4s out</div></div>
+              <div class="watch-instruction"><div class="watch-instr-num">4</div><div class="watch-instr-text"><strong style="color:#fff;">No coffee, tea</strong> or salty snacks</div></div>
+              <div class="watch-instruction"><div class="watch-instr-num">5</div><div class="watch-instr-text"><strong style="color:#fff;">No extra medication</strong> until told by doctor</div></div>
+              <div class="watch-divider"></div>
+              <button onclick="this.innerHTML='📞 Calling 999...';this.style.background='#8b0000';this.style.animation='none';" style="width:100%;padding:13px 0;background:var(--red);border:none;border-radius:18px;color:#fff;font-family:'Raleway',sans-serif;font-size:15px;font-weight:800;cursor:pointer;animation:sosGlow 1.5s ease infinite;margin-bottom:6px;">📞 CALL 999</button>
+              <div class="watch-status-row">
+                <div class="watch-status-item"><div class="watch-status-val" style="color:var(--red);">88</div><div class="watch-status-label">BPM</div></div>
+                <div class="watch-status-item"><div class="watch-status-val" style="color:var(--sky);">96%</div><div class="watch-status-label">SPO₂</div></div>
+                <div class="watch-status-item"><div class="watch-status-val" style="color:var(--green);">4 min</div><div class="watch-status-label">CARER ETA</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="watch-strap-bot"></div>
+        <div style="margin-top:16px;text-align:center;"><div style="font-size:13px;font-weight:700;color:var(--text);">Fitbit Sense 3</div><div style="font-size:11px;color:var(--muted);">Vibration + Audio + Screen alert</div></div>
+      </div>
+      <div class="watch-companion" style="max-width:460px;animation:fadeUp .5s .3s ease both;opacity:0;animation-fill-mode:both;">
+        <div><div class="companion-title">Immediate Steps<br><span style="color:var(--amber);">While Waiting for Help</span></div><div class="companion-sub" style="margin-bottom:20px;">Displayed on the wearable screen and read aloud.</div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(56,189,248,.12);color:var(--sky);border:1px solid rgba(56,189,248,.25);">1</div><div class="companion-step-body"><div class="companion-step-title">🛏️ Lie Flat on Your Back</div><div class="companion-step-desc">Helps stabilise blood flow and reduces the workload on the heart.</div></div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(57,224,121,.1);color:var(--green);border:1px solid rgba(57,224,121,.2);">2</div><div class="companion-step-body"><div class="companion-step-title">🤫 Stay Calm — Close Your Eyes</div><div class="companion-step-desc">Panic directly raises blood pressure. Focus only on breathing.</div></div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(0,200,180,.1);color:var(--teal);border:1px solid var(--border);">3</div><div class="companion-step-body"><div class="companion-step-title">🫁 Box Breathing Exercise</div><div class="companion-step-desc" style="margin-bottom:10px;">Watch guides with haptic pulses:</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><div style="background:rgba(0,200,180,.07);border:1px solid rgba(0,200,180,.15);border-radius:10px;padding:8px 10px;font-size:11px;color:var(--text);"><div style="font-family:var(--mono);font-size:9px;color:var(--teal);margin-bottom:3px;">INHALE</div>Breathe in for <strong>4s</strong></div><div style="background:rgba(0,200,180,.07);border:1px solid rgba(0,200,180,.15);border-radius:10px;padding:8px 10px;font-size:11px;color:var(--text);"><div style="font-family:var(--mono);font-size:9px;color:var(--teal);margin-bottom:3px;">HOLD</div>Hold for <strong>4s</strong></div><div style="background:rgba(0,200,180,.07);border:1px solid rgba(0,200,180,.15);border-radius:10px;padding:8px 10px;font-size:11px;color:var(--text);"><div style="font-family:var(--mono);font-size:9px;color:var(--teal);margin-bottom:3px;">EXHALE</div>Breathe out for <strong>4s</strong></div><div style="background:rgba(0,200,180,.07);border:1px solid rgba(0,200,180,.15);border-radius:10px;padding:8px 10px;font-size:11px;color:var(--text);"><div style="font-family:var(--mono);font-size:9px;color:var(--teal);margin-bottom:3px;">WAIT</div>Rest for <strong>4s</strong></div></div></div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(255,179,71,.1);color:var(--amber);border:1px solid rgba(255,179,71,.2);">4</div><div class="companion-step-body"><div class="companion-step-title">🚫 Avoid Triggers</div><div class="companion-step-desc">No coffee, tea, or salty snacks. These raise BP further.</div></div></div>
+        <div class="companion-step"><div class="companion-step-num" style="background:rgba(255,77,109,.1);color:var(--red);border:1px solid rgba(255,77,109,.2);">5</div><div class="companion-step-body"><div class="companion-step-title">💊 Do Not Self-Medicate</div><div class="companion-step-desc">Do <strong style="color:var(--red);">not</strong> give extra BP medication. Dropping BP too fast is equally dangerous.</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+
+<script>
+// ── Clock ──
+(function tick(){
+  const cl = document.getElementById('clock');
+  cl.textContent = new Date().toLocaleTimeString('en-GB');
+  if(window.innerWidth > 600) cl.style.display = 'block';
+  setTimeout(tick,1000);
+})();
+
+// ── Tab switching ──
+function switchScreen(name,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='agency'){
+    initAgencyMap();
+    triggerAgencyAlerts();
+  }
+  if(name==='carer'){
+    initCarerMap();
+    triggerCarerAlert();
+  }
+  if(name==='family') triggerFamilyBeep();
+}
+
+// ══════════════════════════════════════════════════
+// AGENCY MAP — Canvas-drawn, light theme, Bristol
+// ══════════════════════════════════════════════════
+let agencyMapDone=false;
+function initAgencyMap(){
+  if(agencyMapDone)return; agencyMapDone=true;
+  const wrap=document.getElementById('agency-map-wrap');
+  const cv=document.getElementById('agency-map-canvas');
+  function resize(){
+    cv.width=wrap.clientWidth; cv.height=wrap.clientHeight;
+    drawAgencyMap(cv);
+  }
+  resize();
+  new ResizeObserver(resize).observe(wrap);
+}
+
+function drawAgencyMap(cv){
+  const W=cv.width, H=cv.height;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // ── Map colours (light CartoDB style) ──
+  const C={
+    bg:'#f2f0eb',         // land
+    park:'#d4e9c4',       // green space
+    water:'#b3d1e8',      // water
+    road_maj:'#ffffff',   // major roads (white)
+    road_maj_casing:'#d4cfc9', // road border
+    road_min:'#f5f3ef',   // minor roads
+    road_min_casing:'#dbd7d0',
+    road_label:'#777',
+    building:'#e8e4dc',
+    text:'#555',
+    text_small:'#888',
+  };
+
+  // Coordinate system: Bristol Bedminster area
+  // Lat range: 51.435 – 51.455, Lon range: -2.615 – -2.585
+  const LAT0=51.455, LAT1=51.435;
+  const LON0=-2.615, LON1=-2.585;
+
+  function proj(lat,lon){
+    const x=((lon-LON0)/(LON1-LON0))*W;
+    const y=((lat-LAT0)/(LAT1-LAT0))*H;
+    return [x,y];
+  }
+
+  // ── BACKGROUND ──
+  ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+
+  // ── RIVER AVON (runs through south) ──
+  ctx.beginPath();
+  ctx.moveTo(...proj(51.435,-2.615));
+  ctx.bezierCurveTo(
+    ...proj(51.436,-2.605), ...proj(51.437,-2.598),
+    ...proj(51.438,-2.585)
+  );
+  ctx.lineWidth=18; ctx.strokeStyle=C.water; ctx.stroke();
+  ctx.lineWidth=14; ctx.strokeStyle='#c5dff0'; ctx.stroke();
+
+  // ── PARKS ──
+  function drawPark(pts){
+    ctx.beginPath();
+    pts.forEach((p,i)=>{ const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.closePath();
+    ctx.fillStyle=C.park; ctx.fill();
+    ctx.strokeStyle='#bcd9aa'; ctx.lineWidth=1; ctx.stroke();
+  }
+  // Victoria Park
+  drawPark([[51.449,-2.605],[51.449,-2.598],[51.445,-2.598],[51.445,-2.605]]);
+  // Windmill Hill park
+  drawPark([[51.440,-2.600],[51.440,-2.595],[51.437,-2.595],[51.437,-2.600]]);
+  // Small green near Dorothy's
+  drawPark([[51.437,-2.611],[51.437,-2.608],[51.435,-2.608],[51.435,-2.611]]);
+
+  // ── ROAD DRAWING HELPERS ──
+  function road(coords, casingW, fillW, casingCol, fillCol){
+    // casing
+    ctx.beginPath();
+    coords.forEach((p,i)=>{ const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.strokeStyle=casingCol; ctx.lineWidth=casingW;
+    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+    // fill
+    ctx.beginPath();
+    coords.forEach((p,i)=>{ const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.strokeStyle=fillCol; ctx.lineWidth=fillW;
+    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+  }
+  function roadLabel(coords, label){
+    if(coords.length<2)return;
+    const [x1,y1]=proj(...coords[0]);
+    const [x2,y2]=proj(...coords[coords.length-1]);
+    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    const angle=Math.atan2(y2-y1,x2-x1);
+    ctx.save();
+    ctx.translate(mx,my);
+    ctx.rotate(angle);
+    ctx.font='500 9px Raleway,sans-serif';
+    ctx.fillStyle=C.road_label;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(label,0,0);
+    ctx.restore();
+  }
+
+  // ── MAJOR ROADS ──
+  // Bedminster Parade / A38 (runs N-S, main artery)
+  const a38=[[51.455,-2.595],[51.450,-2.596],[51.445,-2.597],[51.440,-2.597],[51.435,-2.597]];
+  road(a38,11,7.5,C.road_maj_casing,C.road_maj);
+  roadLabel([[51.450,-2.596],[51.445,-2.597]],'Bedminster Parade');
+
+  // North Street (E-W)
+  const northSt=[[51.447,-2.615],[51.447,-2.608],[51.447,-2.600],[51.447,-2.593],[51.447,-2.585]];
+  road(northSt,11,7.5,C.road_maj_casing,C.road_maj);
+  roadLabel([[51.447,-2.607],[51.447,-2.599]],'North Street');
+
+  // East Street
+  const eastSt=[[51.443,-2.615],[51.443,-2.608],[51.443,-2.600],[51.443,-2.594],[51.443,-2.585]];
+  road(eastSt,9,6,C.road_maj_casing,C.road_maj);
+  roadLabel([[51.443,-2.608],[51.443,-2.600]],'East Street');
+
+  // Windmill Hill
+  const windmill=[[51.441,-2.600],[51.440,-2.596],[51.439,-2.591],[51.438,-2.586]];
+  road(windmill,8,5.5,C.road_maj_casing,C.road_maj);
+  roadLabel([[51.440,-2.596],[51.439,-2.591]],'Windmill Hill');
+
+  // ── MINOR ROADS ──
+  const minors=[
+    // Oak Lane (Margaret)
+    {coords:[[51.442,-2.603],[51.441,-2.600],[51.441,-2.597]],label:'Oak Lane'},
+    // Elm Road (Robert)
+    {coords:[[51.447,-2.598],[51.446,-2.598],[51.445,-2.597]],label:'Elm Road'},
+    // Pine Avenue (Dorothy)
+    {coords:[[51.437,-2.612],[51.437,-2.609],[51.437,-2.606]],label:'Pine Ave'},
+    {coords:[[51.445,-2.615],[51.445,-2.608],[51.445,-2.600]],label:''},
+    {coords:[[51.451,-2.610],[51.451,-2.603],[51.451,-2.596]],label:''},
+    {coords:[[51.453,-2.607],[51.450,-2.607],[51.447,-2.607]],label:''},
+    {coords:[[51.449,-2.612],[51.449,-2.607],[51.449,-2.601]],label:'Raleigh Rd'},
+    {coords:[[51.442,-2.610],[51.442,-2.607],[51.442,-2.603]],label:''},
+    {coords:[[51.439,-2.606],[51.439,-2.603],[51.439,-2.599]],label:''},
+    {coords:[[51.436,-2.609],[51.436,-2.607],[51.436,-2.605]],label:''},
+    {coords:[[51.453,-2.601],[51.450,-2.601],[51.447,-2.601]],label:''},
+    {coords:[[51.451,-2.591],[51.449,-2.591],[51.447,-2.591]],label:''},
+    {coords:[[51.444,-2.604],[51.444,-2.600],[51.444,-2.596]],label:''},
+    {coords:[[51.440,-2.603],[51.440,-2.600],[51.440,-2.597]],label:''},
+  ];
+  minors.forEach(r=>{
+    road(r.coords,5.5,3.5,C.road_min_casing,C.road_min);
+    if(r.label) roadLabel(r.coords,r.label);
+  });
+
+  // ── BUILDINGS (simple rectangles for density feel) ──
+  ctx.fillStyle=C.building;
+  const bldgs=[
+    [51.448,-2.612,51.452,-2.608],[51.448,-2.606,51.452,-2.602],[51.448,-2.600,51.452,-2.597],
+    [51.444,-2.614,51.446,-2.611],[51.444,-2.609,51.446,-2.606],[51.444,-2.604,51.446,-2.601],
+    [51.441,-2.614,51.442,-2.611],[51.441,-2.609,51.442,-2.607],[51.441,-2.604,51.442,-2.602],
+    [51.438,-2.613,51.440,-2.610],[51.438,-2.608,51.440,-2.605],[51.438,-2.603,51.440,-2.600],
+    [51.448,-2.593,51.452,-2.590],[51.444,-2.594,51.446,-2.591],[51.441,-2.593,51.442,-2.590],
+    [51.454,-2.612,51.455,-2.608],[51.454,-2.606,51.455,-2.602],[51.454,-2.600,51.455,-2.597],
+  ];
+  bldgs.forEach(([la0,lo0,la1,lo1])=>{
+    const [x0,y0]=proj(la0,lo0); const [x1,y1]=proj(la1,lo1);
+    ctx.fillRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
+  });
+
+  // Park labels
+  ctx.font='bold 10px Raleway,sans-serif'; ctx.fillStyle='#5a8a3a'; ctx.textAlign='center';
+  ctx.fillText('Victoria Park',...proj(51.447,-2.601));
+  ctx.fillText('Windmill Hill',...proj(51.438,-2.597));
+
+  // ── DASHED ROUTE: Sarah → Margaret ──
+  const routePts=[[51.441,-2.597],[51.441,-2.599],[51.442,-2.600],[51.441,-2.601]];
+  ctx.setLineDash([7,5]);
+  ctx.beginPath();
+  routePts.forEach((p,i)=>{ const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.strokeStyle='rgba(0,200,180,0.75)'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── PIN DRAWING ──
+  function drawClientPin(lat,lon,color,label,sublabel){
+    const [x,y]=proj(lat,lon);
+    // glow
+    const grd=ctx.createRadialGradient(x,y,2,x,y,18);
+    grd.addColorStop(0,color+'55'); grd.addColorStop(1,color+'00');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(x,y,18,0,Math.PI*2); ctx.fill();
+    // ring
+    ctx.beginPath(); ctx.arc(x,y,10,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.stroke();
+    // label bubble
+    ctx.font='bold 10px Raleway,sans-serif'; ctx.textAlign='center';
+    const tw=ctx.measureText(label).width+16;
+    const bx=x-tw/2, by=y-36;
+    roundRect(ctx,bx,by,tw,20,5);
+    ctx.fillStyle='rgba(255,255,255,0.97)';
+    ctx.shadowColor='rgba(0,0,0,0.2)'; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle=color; ctx.fillText(label,x,by+13);
+    // arrow
+    ctx.beginPath();
+    ctx.moveTo(x-5,by+20); ctx.lineTo(x+5,by+20); ctx.lineTo(x,by+26); ctx.closePath();
+    ctx.fillStyle='rgba(255,255,255,0.97)'; ctx.strokeStyle=color; ctx.lineWidth=1;
+    ctx.fill(); ctx.stroke();
+  }
+
+  function drawCarerPin(lat,lon,color,label,emoji){
+    const [x,y]=proj(lat,lon);
+    // shadow
+    ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=12;
+    // pill background
+    ctx.font='bold 11px Raleway,sans-serif'; ctx.textAlign='center';
+    const tw=ctx.measureText(emoji+' '+label).width+20;
+    const bx=x-tw/2, by=y-26;
+    roundRect(ctx,bx,by,tw,22,11);
+    ctx.fillStyle='#ffffff'; ctx.fill();
+    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle=color;
+    ctx.fillText(emoji+' '+label,x,by+14);
+    // dot
+    ctx.beginPath(); ctx.arc(x,y+2,5,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+  }
+
+  // Client pins
+  drawClientPin(51.441,-2.601,'#ff4d6d','⚠ Margaret T.');
+  drawClientPin(51.446,-2.597,'#ffb347','⚠ Robert K.');
+  drawClientPin(51.437,-2.609,'#39e079','Dorothy M.');
+
+  // Carer pins
+  drawCarerPin(51.441,-2.598,'#00c8b4','Sarah M.','👩');
+  drawCarerPin(51.446,-2.594,'#38bdf8','James O.','👨');
+  drawCarerPin(51.437,-2.611,'#ffb347','Liu W.','👩');
+
+  // Compass
+  const [cx,cy]=[W-36,36];
+  ctx.beginPath(); ctx.arc(cx,cy,16,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.shadowColor='rgba(0,0,0,.15)'; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
+  ctx.strokeStyle='#ddd'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='bold 10px sans-serif'; ctx.textAlign='center';
+  ctx.fillStyle='#e53935'; ctx.fillText('N',cx,cy-5);
+  ctx.fillStyle='#aaa'; ctx.fillText('S',cx,cy+9);
+  ctx.fillStyle='#aaa'; ctx.font='bold 8px sans-serif';
+  ctx.fillText('W',cx-10,cy+3); ctx.fillText('E',cx+10,cy+3);
+
+  // Scale bar
+  const [sx,sy]=[20,H-14];
+  ctx.fillStyle='rgba(255,255,255,.8)'; ctx.fillRect(sx,sy-10,82,12); 
+  ctx.strokeStyle='#555'; ctx.lineWidth=1;
+  ctx.strokeRect(sx,sy-10,82,12);
+  ctx.font='8px sans-serif'; ctx.fillStyle='#333'; ctx.textAlign='left';
+  ctx.fillText('0         200m',sx+4,sy-1);
+}
+
+// ══════════════════════════════════════════════════
+// CARER MAP — dark theme, zoomed in nav view
+// ══════════════════════════════════════════════════
+let carerMapDone=false;
+let carerDashOffset=0;
+
+function initCarerMap(){
+  if(carerMapDone)return; carerMapDone=true;
+  const wrap=document.getElementById('carer-map-wrap');
+  const cv=document.getElementById('carer-map-canvas');
+  function resize(){
+    cv.width=wrap.clientWidth; cv.height=wrap.clientHeight;
+  }
+  resize();
+  new ResizeObserver(resize).observe(wrap);
+  animateCarerMap(cv);
+}
+
+function animateCarerMap(cv){
+  carerDashOffset-=0.5;
+  drawCarerMap(cv, carerDashOffset);
+  requestAnimationFrame(()=>animateCarerMap(cv));
+}
+
+function drawCarerMap(cv, dashOff){
+  const W=cv.width, H=cv.height;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // Tighter zoom around the route
+  const LAT0=51.444, LAT1=51.438;
+  const LON0=-2.605, LON1=-2.594;
+  function proj(lat,lon){
+    return [((lon-LON0)/(LON1-LON0))*W, ((lat-LAT0)/(LAT1-LAT0))*H];
+  }
+
+  // ── BACKGROUND ──
+  ctx.fillStyle='#0d1f2d'; ctx.fillRect(0,0,W,H);
+
+  // ── PARKS (dark green tint) ──
+  ctx.fillStyle='rgba(57,100,50,0.22)';
+  ctx.beginPath();
+  [[51.443,-2.604],[51.443,-2.600],[51.440,-2.600],[51.440,-2.604]].forEach((p,i)=>{
+    const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  });
+  ctx.closePath(); ctx.fill();
+  ctx.font='9px Raleway,sans-serif'; ctx.fillStyle='rgba(80,140,60,0.6)';
+  ctx.textAlign='center'; ctx.fillText('Windmill Hill',...proj(51.441,-2.602));
+
+  // ── ROAD DRAWING (dark theme) ──
+  function dkRoad(coords,casingW,fillW,casingCol,fillCol){
+    ctx.beginPath();
+    coords.forEach((p,i)=>{const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.strokeStyle=casingCol; ctx.lineWidth=casingW; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+    ctx.beginPath();
+    coords.forEach((p,i)=>{const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.strokeStyle=fillCol; ctx.lineWidth=fillW; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+  }
+  function dkLabel(coords,label){
+    const [x1,y1]=proj(...coords[0]);
+    const [x2,y2]=proj(...coords[coords.length-1]);
+    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    const angle=Math.atan2(y2-y1,x2-x1);
+    ctx.save(); ctx.translate(mx,my); ctx.rotate(angle);
+    ctx.font='500 9px Raleway,sans-serif';
+    ctx.fillStyle='rgba(180,210,230,0.55)'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(label,0,0); ctx.restore();
+  }
+
+  // Major
+  dkRoad([[51.444,-2.597],[51.441,-2.597],[51.438,-2.597]],9,6,'#0f2535','#1a3a52');
+  dkLabel([[51.443,-2.597],[51.440,-2.597]],'Bedminster Parade A38');
+  dkRoad([[51.443,-2.605],[51.443,-2.601],[51.443,-2.597],[51.443,-2.594]],9,6,'#0f2535','#1a3a52');
+  dkLabel([[51.443,-2.604],[51.443,-2.598]],'North Street');
+
+  // Minor roads
+  const dk_minors=[
+    {c:[[51.442,-2.603],[51.441,-2.601],[51.441,-2.599]],l:'Oak Lane'},
+    {c:[[51.441,-2.605],[51.441,-2.603],[51.441,-2.601]],l:''},
+    {c:[[51.440,-2.601],[51.440,-2.599],[51.440,-2.597]],l:''},
+    {c:[[51.442,-2.601],[51.441,-2.601],[51.440,-2.601]],l:'Raleigh Rd'},
+    {c:[[51.442,-2.599],[51.441,-2.599],[51.440,-2.599]],l:''},
+    {c:[[51.443,-2.603],[51.441,-2.603],[51.440,-2.603]],l:''},
+    {c:[[51.439,-2.602],[51.439,-2.599],[51.439,-2.596]],l:''},
+    {c:[[51.443,-2.599],[51.441,-2.599],[51.440,-2.599]],l:''},
+  ];
+  dk_minors.forEach(r=>{
+    dkRoad(r.c,5,3,'#0c1c2c','#152c42');
+    if(r.l) dkLabel(r.c,r.l);
+  });
+
+  // ── ANIMATED ROUTE ──
+  const routePts=[
+    [51.439,-2.597],  // Sarah (YOU) - south start
+    [51.440,-2.597],
+    [51.440,-2.599],
+    [51.441,-2.599],
+    [51.441,-2.601],  // Oak Lane turn
+    [51.441,-2.601],
+  ];
+
+  // Glow underlay
+  ctx.beginPath();
+  routePts.forEach((p,i)=>{const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.strokeStyle='rgba(0,200,180,0.25)'; ctx.lineWidth=14; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+
+  // Solid route
+  ctx.beginPath();
+  routePts.forEach((p,i)=>{const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.strokeStyle='rgba(0,200,180,0.85)'; ctx.lineWidth=5; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+
+  // Animated dashes
+  ctx.setLineDash([12,8]); ctx.lineDashOffset=dashOff;
+  ctx.beginPath();
+  routePts.forEach((p,i)=>{const [x,y]=proj(...p); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.strokeStyle='rgba(0,240,220,0.6)'; ctx.lineWidth=3; ctx.stroke();
+  ctx.setLineDash([]); ctx.lineDashOffset=0;
+
+  // Turn dots
+  [[51.440,-2.597],[51.441,-2.599]].forEach(p=>{
+    const [x,y]=proj(...p);
+    ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.fillStyle='#00c8b4'; ctx.fill();
+    ctx.strokeStyle='rgba(0,200,180,0.4)'; ctx.lineWidth=3; ctx.stroke();
+  });
+
+  // Alert pulse around Margaret's home
+  const [mx,my]=proj(51.441,-2.601);
+  const t=Date.now()/1000;
+  const pulse=(Math.sin(t*2)+1)/2;
+  ctx.beginPath(); ctx.arc(mx,my,20+pulse*10,0,Math.PI*2);
+  ctx.strokeStyle=`rgba(255,77,109,${0.4-pulse*0.3})`; ctx.lineWidth=2; ctx.stroke();
+
+  // ── DESTINATION PIN (Margaret's home) ──
+  ctx.shadowColor='rgba(255,77,109,0.6)'; ctx.shadowBlur=20;
+  // pill
+  ctx.font='bold 11px Raleway,sans-serif'; ctx.textAlign='center';
+  const destLabel='🏠 Margaret\'s Home';
+  const tw=ctx.measureText(destLabel).width+20;
+  roundRectDark(ctx,mx-tw/2,my-40,tw,22,11);
+  ctx.fillStyle='#ff4d6d'; ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#fff'; ctx.fillText(destLabel,mx,my-26);
+  // arrow
+  ctx.beginPath(); ctx.moveTo(mx-6,my-18); ctx.lineTo(mx+6,my-18); ctx.lineTo(mx,my-11); ctx.closePath();
+  ctx.fillStyle='#ff4d6d'; ctx.fill();
+  // dot
+  ctx.beginPath(); ctx.arc(mx,my,8,0,Math.PI*2);
+  ctx.fillStyle='#ff4d6d'; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.8)'; ctx.lineWidth=2; ctx.stroke();
+
+  // ── YOU PIN (Sarah, carer) ──
+  const [yx,yy]=proj(51.439,-2.597);
+  // pulsing ring
+  const pulse2=(Math.sin(t*1.5+1)+1)/2;
+  ctx.beginPath(); ctx.arc(yx,yy,24+pulse2*8,0,Math.PI*2);
+  ctx.strokeStyle=`rgba(0,200,180,${0.15+pulse2*0.1})`; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(yx,yy,18,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,200,180,0.18)'; ctx.fill();
+  ctx.strokeStyle='#00c8b4'; ctx.lineWidth=2; ctx.stroke();
+  // emoji
+  ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('👩',yx,yy);
+  ctx.textBaseline='alphabetic';
+  // YOU label
+  const yw=54;
+  roundRectDark(ctx,yx-yw/2,yy+22,yw,18,9);
+  ctx.fillStyle='#00c8b4'; ctx.fill();
+  ctx.font='bold 10px Raleway,sans-serif'; ctx.fillStyle='#000'; ctx.textAlign='center';
+  ctx.fillText('YOU',yx,yy+33);
+
+  // ── ETA badge ──
+  roundRectDark(ctx,10,10,90,26,8);
+  ctx.fillStyle='rgba(0,30,50,0.85)'; ctx.fill();
+  ctx.strokeStyle='rgba(0,200,180,0.4)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='bold 11px Raleway,sans-serif'; ctx.fillStyle='#00c8b4'; ctx.textAlign='left';
+  ctx.fillText('⏱ ETA: 4 min',16,28);
+
+  // Distance badge
+  roundRectDark(ctx,10,42,90,22,8);
+  ctx.fillStyle='rgba(0,30,50,0.85)'; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='10px Raleway,sans-serif'; ctx.fillStyle='rgba(180,220,240,0.7)'; ctx.textAlign='left';
+  ctx.fillText('📍 1.2 km away',16,56);
+}
+
+function roundRectDark(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+// ── SPARKLINES ──
+function drawSparkline(id,data,color,fill){
+  const cv=document.getElementById(id); if(!cv)return;
+  const ctx=cv.getContext('2d');
+  cv.width=cv.offsetWidth; cv.height=cv.offsetHeight;
+  const W=cv.width,H=cv.height;
+  const mn=Math.min(...data)-2,mx=Math.max(...data)+2;
+  const pts=data.map((v,i)=>[i/(data.length-1)*W,H-((v-mn)/(mx-mn))*H*.85-4]);
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath(); ctx.moveTo(pts[0][0],H);
+  pts.forEach(p=>ctx.lineTo(p[0],p[1]));
+  ctx.lineTo(pts[pts.length-1][0],H); ctx.closePath();
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,fill); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+  pts.forEach(p=>ctx.lineTo(p[0],p[1]));
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+}
+
+const vitals={
+  hr:[72,74,71,75,73,74,76,73,72,74,75,74],
+  spo2:[97,97,98,97,96,97,97,98,97,97,96,97],
+  bpSys:[138,145,152,158,162,167,171,174,178,180,181,182],
+  temp:[36.5,36.6,36.7,36.7,36.8,36.7,36.6,36.7,36.7,36.8,36.7,36.7]
+};
+function renderSparklines(){
+  drawSparkline('spark-hr',vitals.hr,'#ff4d6d','rgba(255,77,109,.18)');
+  drawSparkline('spark-spo2',vitals.spo2,'#38bdf8','rgba(56,189,248,.18)');
+  drawSparkline('spark-bp',vitals.bpSys,'#ffb347','rgba(255,179,71,.18)');
+  drawSparkline('spark-temp',vitals.temp,'#a78bfa','rgba(167,139,250,.18)');
+}
+function updateVitals(){
+  const noise=(b,r)=>+(b+(Math.random()-.5)*r).toFixed(1);
+  vitals.hr.push(noise(74,6)); if(vitals.hr.length>20)vitals.hr.shift();
+  vitals.spo2.push(noise(97,2)); if(vitals.spo2.length>20)vitals.spo2.shift();
+  vitals.bpSys.push(noise(182,4)); if(vitals.bpSys.length>20)vitals.bpSys.shift();
+  vitals.temp.push(noise(36.7,.2)); if(vitals.temp.length>20)vitals.temp.shift();
+  document.getElementById('hr-val').textContent=Math.round(vitals.hr[vitals.hr.length-1]);
+  document.getElementById('spo2-val').textContent=Math.round(vitals.spo2[vitals.spo2.length-1]);
+  document.getElementById('bp-val').textContent=Math.round(vitals.bpSys[vitals.bpSys.length-1])+'/'+Math.round(110+(Math.random()-.5)*6);
+  document.getElementById('temp-val').textContent=vitals.temp[vitals.temp.length-1].toFixed(1);
+  renderSparklines();
+}
+renderSparklines();
+setInterval(updateVitals,2000);
+
+// ── ECG ──
+const ecgCv=document.getElementById('ecg-canvas');
+const ecgCtx=ecgCv.getContext('2d');
+function resizeEcg(){ecgCv.width=ecgCv.offsetWidth;ecgCv.height=ecgCv.offsetHeight;}
+resizeEcg();
+let ecgOff=0;
+function ecgBeat(ctx,sx,my,amp,bw){
+  ctx.moveTo(sx,my);
+  ctx.lineTo(sx+bw*.08,my);
+  ctx.quadraticCurveTo(sx+bw*.12,my-amp*.12,sx+bw*.16,my);
+  ctx.lineTo(sx+bw*.22,my);
+  ctx.lineTo(sx+bw*.26,my+amp*.08);
+  ctx.lineTo(sx+bw*.30,my-amp);
+  ctx.lineTo(sx+bw*.35,my+amp*.15);
+  ctx.lineTo(sx+bw*.45,my);
+  ctx.quadraticCurveTo(sx+bw*.55,my-amp*.3,sx+bw*.65,my);
+  ctx.lineTo(sx+bw,my);
+}
+function drawECG(){
+  const W=ecgCv.width,H=ecgCv.height,my=H/2;
+  ecgCtx.clearRect(0,0,W,H);
+  ecgCtx.strokeStyle='rgba(255,77,109,.07)'; ecgCtx.lineWidth=.5;
+  for(let x=0;x<W;x+=20){ecgCtx.beginPath();ecgCtx.moveTo(x,0);ecgCtx.lineTo(x,H);ecgCtx.stroke();}
+  for(let y=0;y<H;y+=16){ecgCtx.beginPath();ecgCtx.moveTo(0,y);ecgCtx.lineTo(W,y);ecgCtx.stroke();}
+  ecgCtx.shadowColor='#ff4d6d'; ecgCtx.shadowBlur=6;
+  ecgCtx.strokeStyle='#ff4d6d'; ecgCtx.lineWidth=1.8; ecgCtx.lineJoin='round'; ecgCtx.lineCap='round';
+  ecgCtx.beginPath(); ecgCtx.moveTo(-ecgOff,my);
+  for(let i=-1;i<9;i++) ecgBeat(ecgCtx,i*120-ecgOff,my,my*.72,120);
+  ecgCtx.stroke(); ecgCtx.shadowBlur=0;
+  ecgOff=(ecgOff+1.4)%120;
+  requestAnimationFrame(drawECG);
+}
+drawECG();
+window.addEventListener('resize',()=>{resizeEcg();renderSparklines();});
+
+// ══════════════════════════════════════════════════
+// VOICE ALERT SYSTEM — Beep + Speech, queued & acknowledgeable
+// ══════════════════════════════════════════════════
+let voiceAlertsEnabled = true;
+let acknowledgedIds = new Set();
+let alertQueue = [];
+let alertPlaying = false;
+let audioCtx = null;
+
+const criticalAlerts = [
+  {
+    id: 'margaret-bp',
+    fullName: 'Margaret Thornton',
+    shortMsg: 'Hypertensive crisis. BP 182 over 114.',
+    condition: 'Blood pressure critically high at 182 over 114. Hypertensive crisis.',
+    action: 'Sarah Mulligan has been redirected. Immediate response required.'
+  },
+  {
+    id: 'robert-hr',
+    fullName: 'Robert Kendall',
+    shortMsg: 'Heart rate spiked to 112 BPM.',
+    condition: 'Heart rate spiked to 112 beats per minute.',
+    action: "James O'Brien has been dispatched."
+  }
+];
+
+// ── Beep via Web Audio API ──
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(freq, duration, delay, vol) {
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+  gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+  gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + delay + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+  osc.start(ctx.currentTime + delay);
+  osc.stop(ctx.currentTime + delay + duration + 0.05);
+}
+
+function playAlertBeep() {
+  // Two sharp rising beeps — grabs attention without being piercing
+  playBeep(880, 0.12, 0.00, 0.5);
+  playBeep(880, 0.12, 0.17, 0.5);
+  playBeep(1100, 0.18, 0.36, 0.6);
+}
+
+// ── Toggle mute ──
+function toggleAlertSound() {
+  voiceAlertsEnabled = !voiceAlertsEnabled;
+  const btn = document.getElementById('sound-toggle-btn');
+  if (voiceAlertsEnabled) {
+    btn.textContent = '🔊 Voice Alerts ON';
+    btn.classList.remove('muted');
+  } else {
+    btn.textContent = '🔇 Voice Alerts OFF';
+    btn.classList.add('muted');
+    window.speechSynthesis.cancel();
+    alertPlaying = false;
+    alertQueue = [];
+    dismissToast();
+  }
+}
+
+// ── Acknowledge (Respond button) ──
+function acknowledgeAlert(id, btnEl) {
+  acknowledgedIds.add(id);
+  window.speechSynthesis.cancel();
+  alertPlaying = false;
+  dismissToast();
+  if (btnEl) {
+    btnEl.textContent = '✓ Responded';
+    btnEl.style.background = 'rgba(57,224,121,.12)';
+    btnEl.style.color = '#39e079';
+    btnEl.style.borderColor = 'rgba(57,224,121,.3)';
+    btnEl.style.cursor = 'default';
+    btnEl.onclick = null;
+  }
+  setTimeout(processQueue, 800);
+}
+
+// ── Queue + process ──
+function queueAlert(alert) {
+  if (acknowledgedIds.has(alert.id)) return;
+  if (alertQueue.find(a => a.id === alert.id)) return;
+  alertQueue.push(alert);
+  processQueue();
+}
+
+function processQueue() {
+  if (!voiceAlertsEnabled || alertPlaying || alertQueue.length === 0) return;
+  const alert = alertQueue.shift();
+  if (acknowledgedIds.has(alert.id)) { processQueue(); return; }
+  alertPlaying = true;
+  fireAlert(alert);
+}
+
+function fireAlert(alert) {
+  playAlertBeep();
+  setTimeout(() => {
+    if (!voiceAlertsEnabled || acknowledgedIds.has(alert.id)) {
+      alertPlaying = false; processQueue(); return;
+    }
+    showVoiceToast(alert);
+    const msg = new SpeechSynthesisUtterance();
+    msg.text = 'Critical alert. ' + alert.fullName + '. ' + alert.condition + ' ' + alert.action;
+    msg.rate = 0.88; msg.pitch = 1.0; msg.volume = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    // Prioritise British female voices
+    const preferred = voices.find(v => v.name === 'Google UK English Female')
+      || voices.find(v => v.name === 'Microsoft Hazel Desktop - English (Great Britain)')
+      || voices.find(v => v.name === 'Microsoft Susan')
+      || voices.find(v => v.name.includes('Serena'))
+      || voices.find(v => v.lang === 'en-GB' && v.name.toLowerCase().includes('female'))
+      || voices.find(v => v.lang === 'en-GB')
+      || voices.find(v => v.lang.startsWith('en'));
+    if (preferred) msg.voice = preferred;
+    msg.onend = () => { alertPlaying = false; dismissToast(); setTimeout(processQueue, 1200); };
+    msg.onerror = () => { alertPlaying = false; setTimeout(processQueue, 1200); };
+    window.speechSynthesis.speak(msg);
+  }, 700);
+}
+
+// ── Toast ──
+function showVoiceToast(alert) {
+  dismissToast();
+  const toast = document.createElement('div');
+  toast.className = 'voice-alert-toast'; toast.id = 'voice-alert-toast';
+  toast.innerHTML = '<div class="voice-alert-toast-icon">🔊</div>'
+    + '<div class="voice-alert-toast-text">'
+    + '<div class="voice-alert-toast-title">🚨 ' + alert.fullName + '</div>'
+    + '<div class="voice-alert-toast-sub">' + alert.shortMsg + '</div>'
+    + '</div>'
+    + '<div class="voice-wave"><span></span><span></span><span></span><span></span><span></span></div>';
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+}
+
+function dismissToast() {
+  const t = document.getElementById('voice-alert-toast');
+  if (!t) return;
+  t.classList.remove('show');
+  setTimeout(() => t.remove(), 500);
+}
+
+// ── Warm up voices ──
+window.speechSynthesis.onvoiceschanged = () => {};
+
+function triggerAgencyAlerts() {
+  setTimeout(() => queueAlert(criticalAlerts[0]), 800);
+  setTimeout(() => queueAlert(criticalAlerts[1]), 1200);
+}
+
+// ══════════════════════════════════════════════════
+// CARER CP ALERT — Beep + voice, once on tab open
+// ══════════════════════════════════════════════════
+let carerAlertFired = false;
+
+const carerAlert = {
+  id: 'carer-dispatch',
+  fullName: 'Margaret Thornton',
+  shortMsg: 'Hypertensive crisis. BP 182 over 114. Respond immediately.',
+  condition: 'Blood pressure 182 over 114. Hypertensive crisis.',
+  action: 'Proceed to 14 Oak Lane immediately. Call 999 if condition worsens on arrival.'
+};
+
+function triggerCarerAlert() {
+  if (carerAlertFired) return;
+  carerAlertFired = true;
+
+  // Reuse same beep system
+  playAlertBeep();
+
+  setTimeout(() => {
+    if (!voiceAlertsEnabled) return;
+    showVoiceToast(carerAlert);
+
+    const msg = new SpeechSynthesisUtterance();
+    msg.text = 'Urgent dispatch. ' + carerAlert.fullName + '. ' + carerAlert.condition + ' ' + carerAlert.action;
+    msg.rate = 0.88; msg.pitch = 1.0; msg.volume = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    // Prioritise British female voices
+    const preferred = voices.find(v => v.name === 'Google UK English Female')
+      || voices.find(v => v.name === 'Microsoft Hazel Desktop - English (Great Britain)')
+      || voices.find(v => v.name === 'Microsoft Susan')
+      || voices.find(v => v.name.includes('Serena'))
+      || voices.find(v => v.lang === 'en-GB' && v.name.toLowerCase().includes('female'))
+      || voices.find(v => v.lang === 'en-GB')
+      || voices.find(v => v.lang.startsWith('en'));
+    if (preferred) msg.voice = preferred;
+
+    msg.onend = () => dismissToast();
+    msg.onerror = () => dismissToast();
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(msg);
+  }, 700);
+}
+
+function dismissCarerAlert(btnEl) {
+  window.speechSynthesis.cancel();
+  dismissToast();
+  if (btnEl) {
+    btnEl.textContent = '✓ Acknowledged';
+    btnEl.style.background = '#1a6e3e';
+    btnEl.onclick = null;
+  }
+}
+
+// ══════════════════════════════════════════════════
+// FAMILY ALERT — Beep only, once on tab open
+// ══════════════════════════════════════════════════
+let familyBeepFired = false;
+
+function triggerFamilyBeep() {
+  if (familyBeepFired) return;
+  familyBeepFired = true;
+  playAlertBeep();
+}
+
+
+// ══════════════════════════════════════════════════
+// SPLASH
+// ══════════════════════════════════════════════════
+function enterDemo() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  splash.classList.add('hide');
+  setTimeout(() => { splash.style.display = 'none'; }, 700);
+  setTimeout(() => {
+    const bar = document.getElementById('tour-bar');
+    if (bar) bar.style.display = 'flex';
+  }, 900);
+}
+
+document.getElementById('start-demo-btn').addEventListener('click', enterDemo);
+
+// ══════════════════════════════════════════════════
+// GUIDED TOUR
+// ══════════════════════════════════════════════════
+const tourSteps = [
+  {
+    tab: 'vitals',
+    selector: '.vitals-grid',
+    title: 'Live Patient Vitals',
+    body: "Margaret's wearable streams heart rate, blood pressure, SpO₂ and temperature in real time. The AI engine detects the BP escalation beginning here.",
+    pos: 'bottom'
+  },
+  {
+    tab: 'vitals',
+    selector: '.ecg-row',
+    title: 'Continuous ECG Monitoring',
+    body: "A live ECG trace runs 24/7. Any rhythm irregularity is flagged automatically — no human needs to be watching.",
+    pos: 'top'
+  },
+  {
+    tab: 'agency',
+    selector: '.alert-feed',
+    title: 'Agency Alert Feed',
+    body: "The moment BP crosses the threshold, BrightCare's duty manager hears a voice alert and sees this feed update — patient name, reading, and carer dispatched.",
+    pos: 'top'
+  },
+  {
+    tab: 'agency',
+    selector: '.carers-grid',
+    title: 'Carer Location & Status',
+    body: "The agency sees every carer on shift — who's available, en route, or on a visit — to make dispatch decisions instantly.",
+    pos: 'top'
+  },
+  {
+    tab: 'carer',
+    selector: '.cp-alert-banner',
+    title: 'Carer Dispatch Alert',
+    body: "Sarah's phone beeps and shows this urgent dispatch — full patient context, vitals, and turn-by-turn navigation to Margaret's door. One tap to acknowledge.",
+    pos: 'bottom'
+  },
+  {
+    tab: 'carer',
+    selector: '.cp-map-panel',
+    title: 'Navigation to Patient',
+    body: "Live navigation with ETA updates. The agency sees Sarah's position on their map simultaneously — full visibility across the whole response.",
+    pos: 'left'
+  },
+  {
+    tab: 'family',
+    selector: '.fam-notif-card',
+    title: 'Family Notification',
+    body: "David, Margaret's son, gets an instant push notification — what happened, how serious it is, and that a carer is already on the way.",
+    pos: 'bottom'
+  },
+  {
+    tab: 'wearable',
+    selector: '.watch-frame',
+    title: 'Wearable Guidance',
+    body: "Margaret's Fitbit vibrates and guides her through exactly what to do while she waits — lie flat, breathe, don't self-medicate. Calm in a crisis.",
+    pos: 'right'
+  }
+];
+
+let tourIndex = 0;
+
+function startTour() {
+  tourIndex = 0;
+  document.getElementById('tour-bar').style.display = 'none';
+  showTourStep();
+}
+
+function showTourStep() {
+  const step = tourSteps[tourIndex];
+
+  // Switch to the right tab
+  const allTabBtns = document.querySelectorAll('.tab-btn');
+  let tabBtn = null;
+  allTabBtns.forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + step.tab + "'")) tabBtn = b;
+  });
+  if (tabBtn && !tabBtn.classList.contains('active')) {
+    switchScreen(step.tab, tabBtn);
+  }
+
+  // Wait for tab transition then position spotlight
+  setTimeout(() => {
+    const el = document.querySelector(step.selector);
+    if (!el) { nextTourStep(); return; }
+
+    // Scroll element into view
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      const pad = 10;
+
+      // Show overlay
+      const overlay = document.getElementById('tour-overlay');
+      overlay.classList.remove('hidden');
+      overlay.style.pointerEvents = 'none';
+
+      // Position spotlight
+      const spot = document.getElementById('tour-spotlight');
+      spot.style.display = 'block';
+      spot.style.top    = (rect.top - pad) + 'px';
+      spot.style.left   = (rect.left - pad) + 'px';
+      spot.style.width  = (rect.width + pad * 2) + 'px';
+      spot.style.height = (rect.height + pad * 2) + 'px';
+
+      // Build dots
+      const dots = tourSteps.map((_, i) =>
+        `<div class="tour-dot${i === tourIndex ? ' active' : ''}"></div>`
+      ).join('');
+
+      const isLast = tourIndex === tourSteps.length - 1;
+
+      // Build bubble
+      const bubble = document.getElementById('tour-bubble');
+      bubble.style.display = 'block';
+      bubble.innerHTML =
+        `<div class="tour-bubble-step">STEP ${tourIndex + 1} OF ${tourSteps.length}</div>` +
+        `<div class="tour-bubble-title">${step.title}</div>` +
+        `<div class="tour-bubble-body">${step.body}</div>` +
+        `<div class="tour-bubble-actions">` +
+          `<div class="tour-dots">${dots}</div>` +
+          `<div style="display:flex;gap:8px;">` +
+            `<button class="tour-btn tour-btn-skip" onclick="endTour()">Exit</button>` +
+            `<button class="tour-btn tour-btn-next" onclick="${isLast ? 'endTour()' : 'nextTourStep()'}">` +
+              (isLast ? '✓ Finish' : 'Next →') +
+            `</button>` +
+          `</div>` +
+        `</div>`;
+
+      // Position bubble smartly
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const bw = Math.min(280, vw - 32);
+      const bh = 190;
+      let bTop, bLeft;
+
+      if (step.pos === 'bottom') {
+        bTop = Math.min(rect.bottom + pad + 12, vh - bh - 16);
+        bLeft = Math.max(16, Math.min(rect.left, vw - bw - 16));
+      } else if (step.pos === 'top') {
+        bTop = Math.max(80, rect.top - bh - 16);
+        bLeft = Math.max(16, Math.min(rect.left, vw - bw - 16));
+      } else if (step.pos === 'left') {
+        bTop = Math.max(80, Math.min(rect.top, vh - bh - 16));
+        bLeft = Math.max(16, rect.left - bw - 20);
+      } else { // right
+        bTop = Math.max(80, Math.min(rect.top, vh - bh - 16));
+        bLeft = Math.min(rect.right + 20, vw - bw - 16);
+      }
+
+      bubble.style.top  = bTop + 'px';
+      bubble.style.left = bLeft + 'px';
+      bubble.style.width = bw + 'px';
+    }, 300);
+  }, 400);
+}
+
+function nextTourStep() {
+  tourIndex++;
+  if (tourIndex >= tourSteps.length) { endTour(); return; }
+  // Clear old spotlight before next step
+  document.getElementById('tour-spotlight').style.display = 'none';
+  document.getElementById('tour-bubble').style.display = 'none';
+  showTourStep();
+}
+
+function endTour() {
+  document.getElementById('tour-overlay').classList.add('hidden');
+  document.getElementById('tour-spotlight').style.display = 'none';
+  document.getElementById('tour-bubble').style.display = 'none';
+  document.getElementById('tour-bar').style.display = 'flex';
+}
+
+</script>
+
+<div class="tour-bar" id="tour-bar" style="display:none;">
+  <span>🗺️ Guided Tour</span>
+  <button class="tour-bar-btn" onclick="startTour()">Start Tour</button>
+  <button class="tour-bar-btn" style="background:transparent;border-color:rgba(255,255,255,.1);color:var(--muted);" onclick="document.getElementById('tour-bar').style.display='none'">✕</button>
+</div>
+<div class="tour-overlay hidden" id="tour-overlay"></div>
+<div class="tour-spotlight" id="tour-spotlight" style="display:none;"></div>
+<div class="tour-bubble" id="tour-bubble" style="display:none;"></div>
+</body>
+</html>

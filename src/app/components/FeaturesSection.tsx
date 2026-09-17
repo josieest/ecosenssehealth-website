@@ -6,11 +6,11 @@ export function FeaturesSection() {
       {/* ══════════════════════════════════════
           HERO — Full content left, big image right
       ══════════════════════════════════════ */}
-      <div className="container mx-auto px-6 md:px-12 pt-24 pb-0">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_540px] gap-12 items-stretch">
+      <div className="mx-auto max-w-[1180px] px-5 md:px-8 pt-20 md:pt-24 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] gap-10 xl:gap-14 items-center">
 
           {/* ── LEFT: all the content ── */}
-          <div className="flex flex-col justify-between py-4 pb-20">
+          <div className="flex flex-col justify-between py-2">
 
             {/* Label + headline */}
             <div className="mb-8">
@@ -121,8 +121,8 @@ export function FeaturesSection() {
 
           {/* ── RIGHT: big image, full height ── */}
           <div
-            className="relative rounded-t-2xl overflow-hidden hidden lg:block"
-            style={{ minHeight: "700px" }}
+            className="relative mx-auto w-full max-w-[420px] overflow-hidden rounded-2xl shadow-[0_22px_60px_rgba(10,35,66,0.16)]"
+            style={{ aspectRatio: "2 / 3" }}
           >
             <img
               src={glassCaseImage}

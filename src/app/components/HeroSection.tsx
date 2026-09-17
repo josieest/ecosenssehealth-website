@@ -2,7 +2,7 @@ export function HeroSection() {
   return (
     <section 
       id="hero"
-      className="min-h-[85vh] flex flex-col justify-center relative pt-[160px] pb-16 px-6 md:px-12 overflow-hidden bg-[#0D1F38]"
+      className="min-h-[85vh] flex flex-col justify-center relative pt-20 md:pt-24 pb-20 px-5 md:px-8 overflow-hidden bg-[#0D1F38]"
       style={{
         backgroundImage: `
           linear-gradient(90deg, rgba(13,192,198,0.1) 1px, transparent 1px),

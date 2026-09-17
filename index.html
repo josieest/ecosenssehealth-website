@@ -1,32 +1,32 @@
-import { defineConfig } from 'vite'
-import path from 'path'
-import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-function figmaAssetResolver() {
-  return {
-    name: 'figma-asset-resolver',
-    resolveId(id) {
-      if (id.startsWith('figma:asset/')) {
-        const filename = id.replace('figma:asset/', '')
-        return path.resolve(__dirname, 'src/assets', filename)
+    <title>Design System SaaS Landing Page</title>
+
+    <meta
+      name="description"
+      content="This modern landing page showcases a design system SaaS product, featuring interactive 3D graphics, user testimonials, pricing details, and newsletter subscription."
+    />
+
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
       }
-    },
-  }
-}
 
-export default defineConfig({
-  base: './',
+      #root {
+        height: 100%;
+      }
+    </style>
+  </head>
 
-  plugins: [
-    figmaAssetResolver(),
-    react(),
-    tailwindcss(),
-  ],
+  <body>
+    <div id="root"></div>
 
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src/app'),
-    },
-  },
-})
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -8,8 +8,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-2xl shadow-[0_1px_18px_rgba(10,35,66,0.05)]">
       <div className="mx-auto flex h-[76px] max-w-[1240px] items-center justify-between px-5 md:px-8 lg:px-10">
-        <a href="#hero" className="group flex min-w-0 translate-y-[12px] items-center gap-2.5">
-          <img src={logo} alt="ecoSENSSEhealth logo" className="h-[54px] w-[54px] shrink-0 object-contain transition-transform duration-300 group-hover:scale-[1.03] md:h-[58px] md:w-[58px]" />
+        <a href="#hero" className="group flex min-w-0 translate-y-[10px] items-center gap-2.5">
+          <img src={logo} alt="ecoSENSSEhealth logo" className="h-[52px] w-[52px] shrink-0 object-contain transition-transform duration-300 group-hover:scale-[1.03] md:h-[58px] md:w-[58px]" />
           <span className="whitespace-nowrap translate-y-[2px] text-[19px] font-semibold leading-none tracking-[-0.035em] text-[#0A2342] md:text-[22px]">
             eco<span className="text-[#d4183d]">SENSSE</span>health
           </span>

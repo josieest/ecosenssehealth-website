@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ecosenssehealth.co.uk/sitemap.xml

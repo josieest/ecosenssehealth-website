@@ -1,8 +1,5 @@
-import { useState } from 'react';
-import { RegistrationModal } from './RegistrationModal';
 
 export function PartnerSection() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const benefits = [
     { icon: "🔒", title: "Preferred Pricing — Locked For Life", description: "Pilot partners receive permanently discounted rates, locked in before commercial launch. As ecosensse scales nationally, your cost never changes." },
@@ -109,13 +106,13 @@ export function PartnerSection() {
               ))}
             </div>
 
-            <button
-              className="w-full mt-2 py-4 rounded-xl font-bold text-sm tracking-wide text-white transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
+            <a
+              href="mailto:info@ecosenssehealth.co.uk?subject=Founding%20Pilot%20Partnership%20Enquiry"
+              className="block w-full mt-2 py-4 rounded-xl font-bold text-sm tracking-wide text-white text-center no-underline transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
               style={{ background: "linear-gradient(90deg, #0D7377 0%, #14C0C6 100%)" }}
-              onClick={() => setIsModalOpen(true)}
             >
-              Register Your Interest →
-            </button>
+              Partner With Us →
+            </a>
             <p className="text-white/30 text-xs text-center mt-3">Limited to 10 founding partners</p>
           </div>
 
@@ -162,20 +159,19 @@ export function PartnerSection() {
           </div>
 
           <div className="flex flex-col gap-3 flex-shrink-0 relative z-10 items-center">
-            <button
-              className="py-4 px-10 text-white rounded-xl text-sm font-black whitespace-nowrap tracking-wide transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
+            <a
+              href="mailto:info@ecosenssehealth.co.uk?subject=Founding%20Pilot%20Partnership%20Enquiry"
+              className="py-4 px-10 text-white rounded-xl text-sm font-black whitespace-nowrap tracking-wide text-center no-underline transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
               style={{ background: "linear-gradient(90deg, #0D7377 0%, #14C0C6 100%)" }}
-              onClick={() => setIsModalOpen(true)}
             >
-              Register Your Interest
-            </button>
+              Partner With Us
+            </a>
             <p className="text-[12px] text-white/35 text-center">Limited to 10 founding partners</p>
           </div>
         </div>
 
       </div>
 
-      <RegistrationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 }

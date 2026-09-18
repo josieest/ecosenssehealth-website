@@ -1,3 +1,4 @@
+import breakingGlassCaseImage from "../../assets/breaking-the-glass-case.png";
 export function SolutionSection() {
   return (
     <section
@@ -39,7 +40,7 @@ export function SolutionSection() {
         {/* ══════ HERO IMAGE — Breaking the Glass Case ══════ */}
         <div className="relative rounded-2xl overflow-hidden mb-20" style={{ maxHeight: "480px" }}>
           <img
-            src="https://i.imgur.com/PHgPXDD.png"
+            src={breakingGlassCaseImage}
             alt="Breaking the Glass Case of Home Care — ecoSENSSEhealth solution"
             className="w-full object-cover object-center"
             style={{ maxHeight: "480px" }}

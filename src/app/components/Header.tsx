@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu, X, ArrowUpRight } from "lucide-react";
-import logo from "figma:asset/8b0802d0b6a39071ba887d5279730203f5255349.png";
+import logo from "src/assets/08c6febabef0a4cdbffb121033a6556c9b7694cb.png";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
